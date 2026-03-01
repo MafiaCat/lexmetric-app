@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Lawyer, SearchParams, Review } from '../types';
 
 // Fallback for Vite env variable to fix TypeScript error
-const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
+const API_URL = (import.meta as any).env?.VITE_API_URL || 'https://lexmetric-app.onrender.com';
 
 const api = axios.create({
     baseURL: API_URL,
