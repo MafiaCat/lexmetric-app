@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserPlus, Building, MapPin, Briefcase, Calendar, Euro, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { UserPlus, MapPin, Briefcase, Euro, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { createLawyer } from '../../services/api';
 
 export const AddLawyer: React.FC = () => {

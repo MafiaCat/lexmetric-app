@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Search, ShieldCheck, ShieldAlert, MapPin, Briefcase, Filter } from 'lucide-react';
+import { Users, Search, ShieldCheck, ShieldAlert, MapPin, Briefcase } from 'lucide-react';
 import { getLawyers } from '../../services/api';
 import { Lawyer } from '../../types';
 

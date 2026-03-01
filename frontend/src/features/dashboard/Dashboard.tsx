@@ -5,8 +5,7 @@ import {
     Clock,
     Award,
     BarChart3,
-    DollarSign,
-    Users
+    DollarSign
 } from 'lucide-react';
 import {
     BarChart,
