@@ -3,6 +3,8 @@ export interface Lawyer {
     first_name: string;
     last_name: string;
     bar_association: string;
+    city: string;
+    firm_type: string;
     oath_date: string;
     specialties: string[];
     in_network: boolean;

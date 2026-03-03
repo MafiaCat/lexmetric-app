@@ -21,6 +21,8 @@ class Lawyer(Base):
     bar_association = Column(String)
     oath_date = Column(Date)
     specialties = Column(JSON)  # ["Préjudice Corporel", "RC Décennale"]
+    city = Column(String)
+    firm_type = Column(String)  # e.g., "Individuel", "Cabinet Associé"
     in_network = Column(Boolean, default=False)
     average_hourly_rate = Column(Float)
     

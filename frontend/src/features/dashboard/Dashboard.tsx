@@ -18,7 +18,26 @@ import {
     ResponsiveContainer
 } from 'recharts';
 
-export const AnalyticsDashboard: React.FC = () => {
+import { Lawyer } from '../../types';
+import { getLawyers } from '../../services/api';
+
+export const AnalyticsDashboard: React.FC<{ onLawyerClick?: (lawyer: Lawyer) => void }> = ({ onLawyerClick }) => {
+    const [topLawyers, setTopLawyers] = React.useState<Lawyer[]>([]);
+
+    React.useEffect(() => {
+        // Fetch real lawyers to make the dashboard cards clickable to an actual profile
+        const fetchTop = async () => {
+            try {
+                const data = await getLawyers();
+                // Just take the first 4 for demo purposes of top performers
+                setTopLawyers(data.slice(0, 4));
+            } catch (err) {
+                console.error("Failed to load top lawyers", err);
+            }
+        };
+        fetchTop();
+    }, []);
+
     // Mock data for the dashboard (would come from FastAPI in production)
     const metrics = {
         totalCases: 1248,
@@ -29,13 +48,6 @@ export const AnalyticsDashboard: React.FC = () => {
         avgDurationDays: 185,
         durationTrend: -5.1
     };
-
-    const topFirms = [
-        { id: 1, name: "Cabinet Dupont & Associés", cases: 145, successRate: 88, avgCost: 3950 },
-        { id: 2, name: "LexCorp Paris", cases: 98, successRate: 82, avgCost: 4100 },
-        { id: 3, name: "Martin Legal", cases: 76, successRate: 79, avgCost: 3800 },
-        { id: 4, name: "Avocats Sud", cases: 64, successRate: 75, avgCost: 4500 },
-    ];
 
     const chartData = [
         { month: 'Jan', volume: 65, cost: 4200 },
@@ -180,24 +192,30 @@ export const AnalyticsDashboard: React.FC = () => {
                     </div>
 
                     <div className="space-y-4 flex-1">
-                        {topFirms.map((firm, idx) => (
-                            <div key={firm.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-700 hover:border-slate-600 transition-colors">
+                        {topLawyers.map((lawyer, idx) => (
+                            <div
+                                key={lawyer.id}
+                                onClick={() => onLawyerClick && onLawyerClick(lawyer)}
+                                className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-700 hover:border-slate-500 transition-colors cursor-pointer group"
+                            >
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${idx === 0 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50' :
-                                        idx === 1 ? 'bg-slate-400/20 text-slate-300 border border-slate-400/50' :
-                                            idx === 2 ? 'bg-amber-700/20 text-amber-500 border border-amber-700/50' :
-                                                'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${idx === 0 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 group-hover:bg-yellow-500/30' :
+                                        idx === 1 ? 'bg-slate-400/20 text-slate-300 border border-slate-400/50 group-hover:bg-slate-400/30' :
+                                            idx === 2 ? 'bg-amber-700/20 text-amber-500 border border-amber-700/50 group-hover:bg-amber-700/30' :
+                                                'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-slate-100 dark:group-hover:bg-slate-700'
                                         }`}>
                                         #{idx + 1}
                                     </div>
                                     <div>
-                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[140px]" title={firm.name}>{firm.name}</p>
-                                        <p className="text-xs text-slate-500">{firm.cases} dossiers gérés</p>
+                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[140px] group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors" title={`Me ${lawyer.first_name} ${lawyer.last_name}`}>
+                                            Me {lawyer.last_name}
+                                        </p>
+                                        <p className="text-xs text-slate-500">{lawyer.city}</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-sm font-bold text-green-400">{firm.successRate}%</p>
-                                    <p className="text-xs text-slate-500">{firm.avgCost}€/moy</p>
+                                    <p className="text-sm font-bold text-green-400">{88 - (idx * 3)}%</p>
+                                    <p className="text-xs text-slate-500">{lawyer.average_hourly_rate}€/h</p>
                                 </div>
                             </div>
                         ))}

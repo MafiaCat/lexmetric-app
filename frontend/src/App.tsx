@@ -6,12 +6,15 @@ import { AnalyticsDashboard } from './features/dashboard/Dashboard';
 import { MissionReviewForm } from './features/reviews/MissionReviewForm';
 import { Annuaire } from './features/directory/Annuaire';
 import { AddLawyer } from './features/directory/AddLawyer';
+import { LawyerProfile } from './features/search/LawyerProfile';
+import { Lawyer } from './types';
 
 type Tab = 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer';
 
 function App() {
     const [activeTab, setActiveTab] = useState<Tab>('dashboard');
     const [isDarkMode, setIsDarkMode] = useState(false);
+    const [selectedGlobalLawyer, setSelectedGlobalLawyer] = useState<Lawyer | null>(null);
 
     useEffect(() => {
         if (isDarkMode) {
@@ -50,11 +53,20 @@ function App() {
 
                 {/* Feature Component Routing */}
                 <div className="animate-in fade-in duration-500 pt-4">
-                    {activeTab === 'dashboard' && <AnalyticsDashboard />}
-                    {activeTab === 'search' && <LawyerSearch />}
-                    {activeTab === 'review' && <MissionReviewForm onClose={() => setActiveTab('dashboard')} />}
-                    {activeTab === 'annuaire' && <Annuaire />}
-                    {activeTab === 'add-lawyer' && <AddLawyer />}
+                    {selectedGlobalLawyer ? (
+                        <LawyerProfile
+                            lawyer={selectedGlobalLawyer}
+                            onBack={() => setSelectedGlobalLawyer(null)}
+                        />
+                    ) : (
+                        <>
+                            {activeTab === 'dashboard' && <AnalyticsDashboard onLawyerClick={setSelectedGlobalLawyer} />}
+                            {activeTab === 'search' && <LawyerSearch onLawyerClick={setSelectedGlobalLawyer} />}
+                            {activeTab === 'review' && <MissionReviewForm onClose={() => setActiveTab('dashboard')} />}
+                            {activeTab === 'annuaire' && <Annuaire onLawyerClick={setSelectedGlobalLawyer} />}
+                            {activeTab === 'add-lawyer' && <AddLawyer />}
+                        </>
+                    )}
                 </div>
             </main>
         </div>

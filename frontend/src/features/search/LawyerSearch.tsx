@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Search, Briefcase, DollarSign, TrendingUp, Filter, Star, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Search, Briefcase, DollarSign, TrendingUp, Filter, Star, ShieldCheck, ShieldAlert, MapPin } from 'lucide-react';
 import { searchLawyers } from '../../services/api';
 import { Lawyer, SearchParams } from '../../types';
 import { LawyerProfile } from './LawyerProfile';
 
-export const LawyerSearch: React.FC = () => {
+export const LawyerSearch: React.FC<{ onLawyerClick?: (lawyer: Lawyer) => void }> = ({ onLawyerClick }) => {
     const [params, setParams] = useState<SearchParams>({
         specialty: 'Préjudice Corporel',
         complexity: 3,
@@ -30,9 +30,17 @@ export const LawyerSearch: React.FC = () => {
         setSearched(true);
     };
 
-    if (selectedLawyer) {
+    if (selectedLawyer && !onLawyerClick) {
         return <LawyerProfile lawyer={selectedLawyer} onBack={() => setSelectedLawyer(null)} />;
     }
+
+    const handleLawyerSelect = (lawyer: Lawyer) => {
+        if (onLawyerClick) {
+            onLawyerClick(lawyer);
+        } else {
+            setSelectedLawyer(lawyer);
+        }
+    };
 
     return (
         <div className="max-w-6xl mx-auto space-y-8">
@@ -170,11 +178,13 @@ export const LawyerSearch: React.FC = () => {
                                                 </div>
                                             )}
                                         </h4>
-                                        <div className="flex items-center text-sm text-slate-500 dark:text-slate-400 mt-1 space-x-4">
-                                            <span>Barreau: <strong className="text-slate-700 dark:text-slate-300">{lawyer.bar_association}</strong></span>
-                                            <span className="px-1.5">•</span>
+                                        <div className="flex items-center text-sm text-slate-500 dark:text-slate-400 mt-1 space-x-3">
+                                            <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> <strong className="text-slate-700 dark:text-slate-300">{lawyer.city} {lawyer.bar_association !== lawyer.city ? `(${lawyer.bar_association})` : ''}</strong></span>
+                                            <span className="px-1">•</span>
+                                            <span className="flex items-center gap-1"><Briefcase className="w-3.5 h-3.5" /> <strong className="text-slate-700 dark:text-slate-300">{lawyer.firm_type}</strong></span>
+                                            <span className="px-1">•</span>
                                             <span>Ancienneté: <strong className="text-slate-700 dark:text-slate-300">{new Date().getFullYear() - new Date(lawyer.oath_date).getFullYear()} ans</strong></span>
-                                            <span className="px-1.5">•</span>
+                                            <span className="px-1">•</span>
                                             <span>Taux: <strong className="text-slate-700 dark:text-slate-300">{lawyer.average_hourly_rate}€/h</strong></span>
                                         </div>
 
@@ -194,7 +204,7 @@ export const LawyerSearch: React.FC = () => {
                                         Confier le dossier
                                     </button>
                                     <button
-                                        onClick={() => setSelectedLawyer(lawyer)}
+                                        onClick={() => handleLawyerSelect(lawyer)}
                                         className="px-4 py-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-sm font-medium transition-colors"
                                     >
                                         Voir Profil Détaillé

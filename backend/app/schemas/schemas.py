@@ -27,6 +27,8 @@ class LawyerBase(BaseModel):
     first_name: str
     last_name: str
     bar_association: str
+    city: str
+    firm_type: str
     oath_date: date
     specialties: List[str]
     in_network: bool
