@@ -7,14 +7,28 @@ import { MissionReviewForm } from './features/reviews/MissionReviewForm';
 import { Annuaire } from './features/directory/Annuaire';
 import { AddLawyer } from './features/directory/AddLawyer';
 import { LawyerProfile } from './features/search/LawyerProfile';
+import { DemoLogin } from './features/auth/DemoLogin';
+import { useAuth } from './context/AuthContext';
 import { Lawyer } from './types';
 
 type Tab = 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer';
 
 function App() {
-    const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+    const { isAuthenticated, user } = useAuth();
+    const [activeTab, setActiveTab] = useState<Tab>('search'); // Default to search since dashboard is admin-only
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [selectedGlobalLawyer, setSelectedGlobalLawyer] = useState<Lawyer | null>(null);
+
+    // Ensure non-admins don't stay on the dashboard tab
+    useEffect(() => {
+        if (user && user.role !== 'admin' && activeTab === 'dashboard') {
+            setActiveTab('search');
+        }
+    }, [user, activeTab]);
+
+    if (!isAuthenticated) {
+        return <DemoLogin />;
+    }
 
     useEffect(() => {
         if (isDarkMode) {

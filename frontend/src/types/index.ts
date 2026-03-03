@@ -1,3 +1,16 @@
+export interface Company {
+    id: number;
+    name: string;
+}
+
+export interface User {
+    id: number;
+    email: string;
+    full_name: string;
+    role: "admin" | "user";
+    company_id: number;
+}
+
 export interface Lawyer {
     id: number;
     first_name: string;
@@ -15,12 +28,13 @@ export interface Lawyer {
 
 export interface Review {
     id: number;
+    mission_id: number;
+    company_id?: number;
     reactivity_score: number;
     technical_expertise_score: number;
     negotiation_score: number;
     fee_respect_score: number;
     comment?: string;
-    mission_id: number;
     created_at: string;
 }
 

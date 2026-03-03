@@ -1,6 +1,6 @@
 import datetime
 from app.db.database import SessionLocal, engine, Base
-from app.db.models import LawFirm, Lawyer, Mission, Review
+from app.db.models import LawFirm, Lawyer, Mission, Review, Company, User
 
 import os
 
@@ -21,6 +21,21 @@ def seed_db():
         
     print("Seeding database...")
     
+    # 0. Companies and Users
+    company_allianz = Company(name="Allianz")
+    company_axa = Company(name="AXA")
+    db.add_all([company_allianz, company_axa])
+    db.commit()
+    db.refresh(company_allianz)
+    db.refresh(company_axa)
+
+    user1 = User(email="jean.dupont@allianz.fr", full_name="Jean (Directeur Allianz)", role="admin", company_id=company_allianz.id)
+    user2 = User(email="sophie.martin@allianz.fr", full_name="Sophie (Gestionnaire Allianz)", role="user", company_id=company_allianz.id)
+    user3 = User(email="marc.bernard@axa.fr", full_name="Marc (Directeur AXA)", role="admin", company_id=company_axa.id)
+    user4 = User(email="marie.petit@axa.fr", full_name="Marie (Gestionnaire AXA)", role="user", company_id=company_axa.id)
+    db.add_all([user1, user2, user3, user4])
+    db.commit()
+
     # 1. Law Firms
     firm1 = LawFirm(name="Cabinet Dupont & Associés", size=15)
     firm2 = LawFirm(name="LexCorp Paris", size=45)
@@ -87,11 +102,11 @@ def seed_db():
     db.refresh(mission2)
     db.refresh(mission3)
     
-    review1 = Review(mission_id=mission1.id, reactivity_score=5, technical_expertise_score=4, 
+    review1 = Review(mission_id=mission1.id, company_id=company_allianz.id, reactivity_score=5, technical_expertise_score=4, 
                      negotiation_score=5, fee_respect_score=5, comment="Excellent travail pour une belle indemnisation.")
-    review2 = Review(mission_id=mission2.id, reactivity_score=3, technical_expertise_score=5, 
+    review2 = Review(mission_id=mission2.id, company_id=company_allianz.id, reactivity_score=3, technical_expertise_score=5, 
                      negotiation_score=4, fee_respect_score=3, comment="Bonne technique mais factures un peu au-dessus du devis initial.")
-    review3 = Review(mission_id=mission3.id, reactivity_score=5, technical_expertise_score=5, 
+    review3 = Review(mission_id=mission3.id, company_id=company_axa.id, reactivity_score=5, technical_expertise_score=5, 
                      negotiation_score=5, fee_respect_score=4, comment="Impeccable.")
                      
     db.add_all([review1, review2, review3])
