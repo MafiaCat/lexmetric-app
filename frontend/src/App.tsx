@@ -6,10 +6,13 @@ import { AnalyticsDashboard } from './features/dashboard/Dashboard';
 import { MissionReviewForm } from './features/reviews/MissionReviewForm';
 import { Annuaire } from './features/directory/Annuaire';
 import { AddLawyer } from './features/directory/AddLawyer';
+import { useAuth } from './context/AuthContext';
+import { DemoLogin } from './features/auth/DemoLogin';
 
 type Tab = 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer';
 
 function App() {
+    const { isAuthenticated, user } = useAuth();
     const [activeTab, setActiveTab] = useState<Tab>('dashboard');
     const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -20,6 +23,16 @@ function App() {
             document.documentElement.classList.remove('dark');
         }
     }, [isDarkMode]);
+
+    useEffect(() => {
+        if (user && user.role !== 'admin' && activeTab === 'dashboard') {
+            setActiveTab('search');
+        }
+    }, [user, activeTab]);
+
+    if (!isAuthenticated) {
+        return <DemoLogin />;
+    }
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 flex font-sans transition-colors duration-300">
