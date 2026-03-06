@@ -1,5 +1,6 @@
 import os
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from app.db.database import Base
 from app.db.models import *
 import seed
@@ -15,8 +16,10 @@ print("Creating all tables in Neon DB...")
 Base.metadata.create_all(bind=engine)
 
 print("Running seed_db() against Neon DB...")
-os.environ["SQLALCHEMY_DATABASE_URL"] = NEON_URL
+
+SessionNeon = sessionmaker(bind=engine)
+db = SessionNeon()
 
 # Call the actual seed
-seed.seed_db()
+seed.seed_db(custom_db=db)
 print("Done!")

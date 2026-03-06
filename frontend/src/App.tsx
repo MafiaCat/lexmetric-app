@@ -8,8 +8,9 @@ import { Annuaire } from './features/directory/Annuaire';
 import { AddLawyer } from './features/directory/AddLawyer';
 import { useAuth } from './context/AuthContext';
 import { DemoLogin } from './features/auth/DemoLogin';
+import { ModerationDashboard } from './features/moderation/ModerationDashboard';
 
-type Tab = 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer';
+type Tab = 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer' | 'moderation';
 
 function App() {
     const { isAuthenticated, user } = useAuth();
@@ -25,7 +26,7 @@ function App() {
     }, [isDarkMode]);
 
     useEffect(() => {
-        if (user && user.role !== 'admin' && activeTab === 'dashboard') {
+        if (user && user.role !== 'admin' && (activeTab === 'dashboard' || activeTab === 'moderation')) {
             setActiveTab('search');
         }
     }, [user, activeTab]);
@@ -64,6 +65,7 @@ function App() {
                 {/* Feature Component Routing */}
                 <div className="animate-in fade-in duration-500 pt-4">
                     {activeTab === 'dashboard' && <AnalyticsDashboard />}
+                    {activeTab === 'moderation' && <ModerationDashboard />}
                     {activeTab === 'search' && <LawyerSearch />}
                     {activeTab === 'review' && <MissionReviewForm onClose={() => setActiveTab('dashboard')} />}
                     {activeTab === 'annuaire' && <Annuaire />}

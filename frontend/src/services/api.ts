@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Lawyer, SearchParams, Review, User } from '../types';
+import { Lawyer, SearchParams, Review, User, SupportTicket } from '../types';
 
 // Fallback for Vite env variable to fix TypeScript error
 const API_URL = (import.meta as any).env?.VITE_API_URL || 'https://lexmetric-app.onrender.com';
@@ -92,5 +92,36 @@ export const getLawyerReviews = async (lawyerId: number): Promise<Review[]> => {
 // --- AUTHENTICATION API --- //
 export const getDemoUsers = async (): Promise<User[]> => {
     const response = await api.get('/api/auth/demo-users');
+    return response.data;
+};
+
+// --- MODERATION API --- //
+export const getPendingLawyers = async (): Promise<Lawyer[]> => {
+    const response = await api.get('/api/moderation/lawyers/pending');
+    return response.data;
+};
+
+export const updateLawyerStatus = async (lawyerId: number, status: string): Promise<Lawyer> => {
+    const response = await api.put(`/api/moderation/lawyers/${lawyerId}/status`, { status });
+    return response.data;
+};
+
+export const getTickets = async (): Promise<SupportTicket[]> => {
+    const response = await api.get('/api/moderation/tickets');
+    return response.data;
+};
+
+export const updateTicketStatus = async (ticketId: number, status: string): Promise<SupportTicket> => {
+    const response = await api.put(`/api/moderation/tickets/${ticketId}/status`, { status });
+    return response.data;
+};
+
+export const createTicket = async (ticketData: any, userId: number, companyId: number): Promise<SupportTicket> => {
+    const response = await api.post('/api/tickets', ticketData, {
+        headers: {
+            'x-user-id': userId,
+            'x-company-id': companyId
+        }
+    });
     return response.data;
 };

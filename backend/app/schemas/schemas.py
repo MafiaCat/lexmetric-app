@@ -56,6 +56,7 @@ class LawyerBase(BaseModel):
     in_network: bool
     average_hourly_rate: float
     law_firm_id: Optional[int] = None
+    status: str = "pending"
 
 class LawyerCreate(LawyerBase):
     pass
@@ -68,3 +69,29 @@ class Lawyer(LawyerBase):
 
 class LawyerSearchResponse(Lawyer):
     matching_score: float
+
+class LawyerStatusUpdate(BaseModel):
+    status: str
+
+class SupportTicketBase(BaseModel):
+    ticket_type: str
+    subject: str
+    description: str
+    priority: str = "medium"
+
+class SupportTicketCreate(SupportTicketBase):
+    pass
+
+class SupportTicket(SupportTicketBase):
+    id: int
+    user_id: int
+    company_id: int
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        orm_mode = True
+
+class SupportTicketStatusUpdate(BaseModel):
+    status: str

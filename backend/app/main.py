@@ -40,9 +40,9 @@ def get_demo_users(db: Session = Depends(get_db)):
 @app.get("/api/lawyers", response_model=List[schemas.Lawyer])
 def get_lawyers(db: Session = Depends(get_db)):
     """
-    Récupère la liste de tous les avocats de l'annuaire.
+    Récupère la liste de tous les avocats de l'annuaire (approuvés uniquement).
     """
-    return db.query(models.Lawyer).all()
+    return db.query(models.Lawyer).filter(models.Lawyer.status == "approved").all()
 
 @app.post("/api/lawyers", response_model=schemas.Lawyer)
 def create_lawyer(lawyer: schemas.LawyerCreate, db: Session = Depends(get_db)):
@@ -69,7 +69,7 @@ def search_lawyers(
     Les avocats sont retournés du plus pertinent (Score 100) au moins pertinent.
     """
     # 1. Récupération des avocats (Dans une vraie DB, le filtrage JSON s'effectue côté SQL)
-    all_lawyers = db.query(models.Lawyer).all()
+    all_lawyers = db.query(models.Lawyer).filter(models.Lawyer.status == "approved").all()
     filtered_lawyers = [
         lawyer for lawyer in all_lawyers 
         if lawyer.specialties and specialty in lawyer.specialties
@@ -213,3 +213,64 @@ def create_lawyer_review(
     db.commit()
     db.refresh(db_review)
     return db_review
+
+# --- MODERATION & TICKETS API --- #
+
+@app.get("/api/moderation/lawyers/pending", response_model=List[schemas.Lawyer])
+def get_pending_lawyers(db: Session = Depends(get_db)):
+    """
+    Modérateur : Liste tous les avocats en attente de validation.
+    """
+    return db.query(models.Lawyer).filter(models.Lawyer.status == "pending").all()
+
+@app.put("/api/moderation/lawyers/{lawyer_id}/status", response_model=schemas.Lawyer)
+def update_lawyer_status(lawyer_id: int, status_update: schemas.LawyerStatusUpdate, db: Session = Depends(get_db)):
+    """
+    Modérateur : Approuver ou rejeter le profil.
+    """
+    db_lawyer = db.query(models.Lawyer).filter(models.Lawyer.id == lawyer_id).first()
+    if not db_lawyer:
+        raise HTTPException(status_code=404, detail="Lawyer not found")
+        
+    db_lawyer.status = status_update.status
+    db.commit()
+    db.refresh(db_lawyer)
+    return db_lawyer
+
+@app.get("/api/moderation/tickets", response_model=List[schemas.SupportTicket])
+def get_all_tickets(db: Session = Depends(get_db)):
+    """
+    Modérateur : Liste tous les tickets de support.
+    """
+    return db.query(models.SupportTicket).order_by(models.SupportTicket.created_at.desc()).all()
+
+@app.put("/api/moderation/tickets/{ticket_id}/status", response_model=schemas.SupportTicket)
+def update_ticket_status(ticket_id: int, status_update: schemas.SupportTicketStatusUpdate, db: Session = Depends(get_db)):
+    """
+    Modérateur : Mettre à jour le statut d'un ticket.
+    """
+    db_ticket = db.query(models.SupportTicket).filter(models.SupportTicket.id == ticket_id).first()
+    if not db_ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+        
+    db_ticket.status = status_update.status
+    db.commit()
+    db.refresh(db_ticket)
+    return db_ticket
+
+@app.post("/api/tickets", response_model=schemas.SupportTicket)
+def create_ticket(
+    ticket: schemas.SupportTicketCreate,
+    x_user_id: int = Header(..., description="ID de l'utilisateur qui crée le ticket"),
+    x_company_id: int = Header(..., description="ID de l'entreprise"),
+    db: Session = Depends(get_db)
+):
+    """
+    Gestionnaire : Créer un nouveau ticket de support ou signalement.
+    """
+    db_ticket = models.SupportTicket(**ticket.dict(), user_id=x_user_id, company_id=x_company_id)
+    db.add(db_ticket)
+    db.commit()
+    db.refresh(db_ticket)
+    return db_ticket
+

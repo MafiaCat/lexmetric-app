@@ -1,10 +1,10 @@
 import React from 'react';
-import { Scale, Users, Settings, Bell, Search, BarChart3, Star, UserPlus, LogOut } from 'lucide-react';
+import { Scale, Users, Settings, Bell, Search, BarChart3, Star, UserPlus, LogOut, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface NavProps {
-    activeTab: 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer';
-    setActiveTab: (tab: 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer') => void;
+    activeTab: 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer' | 'moderation';
+    setActiveTab: (tab: 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer' | 'moderation') => void;
 }
 
 export const Navigation: React.FC<NavProps> = ({ activeTab, setActiveTab }) => {
@@ -21,13 +21,22 @@ export const Navigation: React.FC<NavProps> = ({ activeTab, setActiveTab }) => {
 
             <div className="flex-1 py-6 px-4 space-y-2">
                 {user.role === 'admin' && (
-                    <button
-                        onClick={() => setActiveTab('dashboard')}
-                        className={`flex w-full items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${activeTab === 'dashboard' ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 shadow-inner' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'}`}
-                    >
-                        <BarChart3 className="w-5 h-5" />
-                        <span className="font-medium">Tableau de Bord</span>
-                    </button>
+                    <>
+                        <button
+                            onClick={() => setActiveTab('dashboard')}
+                            className={`flex w-full items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${activeTab === 'dashboard' ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 shadow-inner' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'}`}
+                        >
+                            <BarChart3 className="w-5 h-5" />
+                            <span className="font-medium">Tableau de Bord</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('moderation')}
+                            className={`flex w-full items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${activeTab === 'moderation' ? 'bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 shadow-inner' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'}`}
+                        >
+                            <ShieldCheck className="w-5 h-5" />
+                            <span className="font-medium">Centre de Contrôle</span>
+                        </button>
+                    </>
                 )}
 
                 <button

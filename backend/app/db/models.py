@@ -45,6 +45,7 @@ class Lawyer(Base):
     firm_type = Column(String)  # e.g., "Individuel", "Cabinet Associé"
     in_network = Column(Boolean, default=False)
     average_hourly_rate = Column(Float)
+    status = Column(String, default="pending")  # "pending", "approved", "rejected"
     
     law_firm_id = Column(Integer, ForeignKey("law_firms.id"), nullable=True)
     firm = relationship("LawFirm", back_populates="lawyers")
@@ -77,3 +78,20 @@ class Review(Base):
 
     mission = relationship("Mission", back_populates="review")
     company = relationship("Company", back_populates="reviews")
+
+class SupportTicket(Base):
+    __tablename__ = "support_tickets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    company_id = Column(Integer, ForeignKey("companies.id"))
+    ticket_type = Column(String) # "profile_update", "fake_review_report", "bug_report", "feature_request", "billing_issue", "other"
+    subject = Column(String)
+    description = Column(String)
+    status = Column(String, default="open") # "open", "in_progress", "resolved", "closed"
+    priority = Column(String, default="medium") # "low", "medium", "high", "critical"
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User")
+    company = relationship("Company")
