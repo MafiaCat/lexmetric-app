@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Headset, Send, CheckCircle2, AlertTriangle, Bug, Zap, CreditCard, HelpCircle } from 'lucide-react';
+import { LifeBuoy, Send, CheckCircle2, AlertTriangle, Bug, Zap, CreditCard, HelpCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { createTicket } from '../../services/api';
 
@@ -56,14 +56,14 @@ export const SupportForm: React.FC = () => {
         { id: 'bug_report', label: 'Signaler un bug technique', icon: <Bug className="w-5 h-5 text-red-500" /> },
         { id: 'feature_request', label: 'Suggestion d\'amélioration', icon: <Zap className="w-5 h-5 text-yellow-500" /> },
         { id: 'billing_issue', label: 'Problème de facturation', icon: <CreditCard className="w-5 h-5 text-blue-500" /> },
-        { id: 'other', label: 'Autre demande', icon: <Headset className="w-5 h-5 text-slate-500" /> },
+        { id: 'other', label: 'Autre demande', icon: <LifeBuoy className="w-5 h-5 text-slate-500" /> },
     ];
 
     return (
         <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
             <div>
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-3">
-                    <Headset className="w-8 h-8 text-rose-500" />
+                    <LifeBuoy className="w-8 h-8 text-rose-500" />
                     Support Utilisateur
                 </h1>
                 <p className="text-slate-500 dark:text-slate-400">
@@ -98,8 +98,8 @@ export const SupportForm: React.FC = () => {
                                     type="button"
                                     onClick={() => setTicketType(option.id)}
                                     className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${ticketType === option.id
-                                            ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 ring-1 ring-indigo-500 shadow-sm'
-                                            : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 hover:border-indigo-300'
+                                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 ring-1 ring-indigo-500 shadow-sm'
+                                        : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 hover:border-indigo-300'
                                         }`}
                                 >
                                     <div className={`p-2 rounded-lg ${ticketType === option.id ? 'bg-white dark:bg-slate-800 shadow-sm' : 'bg-transparent'}`}>
