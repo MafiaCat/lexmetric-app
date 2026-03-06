@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Lawyer, SearchParams, Review } from '../types';
+import { Lawyer, SearchParams, Review, User } from '../types';
 
 // Fallback for Vite env variable to fix TypeScript error
 const API_URL = (import.meta as any).env?.VITE_API_URL || 'https://lexmetric-app.onrender.com';
@@ -90,7 +90,7 @@ export const getLawyerReviews = async (lawyerId: number): Promise<Review[]> => {
 };
 
 // --- AUTHENTICATION API --- //
-export const getDemoUsers = async (): Promise<any[]> => {
+export const getDemoUsers = async (): Promise<User[]> => {
     const response = await api.get('/api/auth/demo-users');
     return response.data;
 };

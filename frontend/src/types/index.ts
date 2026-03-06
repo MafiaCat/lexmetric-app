@@ -1,3 +1,11 @@
+export interface User {
+    id: number;
+    email: string;
+    full_name: string;
+    company_id: number;
+    role: string;
+}
+
 export interface Lawyer {
     id: number;
     first_name: string;
