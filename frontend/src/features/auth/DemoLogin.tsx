@@ -67,7 +67,7 @@ export const DemoLogin: React.FC = () => {
                                         <Building2 className="w-3 h-3" />
                                         <span>{user.full_name.includes('Allianz') ? 'Allianz' : 'AXA'}</span>
                                         <span className="w-1 h-1 bg-slate-300 rounded-full mx-1"></span>
-                                        <span className="font-medium text-slate-600">{user.role === 'admin' ? 'Directeur Juridique' : 'Gestionnaire'}</span>
+                                        <span className="font-medium text-slate-600">{user.role === 'admin' ? 'Modérateur' : 'Gestionnaire'}</span>
                                     </div>
                                 </div>
                             </div>

@@ -29,9 +29,9 @@ def seed_db():
     db.refresh(company_allianz)
     db.refresh(company_axa)
 
-    user1 = User(email="jean.dupont@allianz.fr", full_name="Jean (Directeur Allianz)", role="admin", company_id=company_allianz.id)
+    user1 = User(email="jean.dupont@allianz.fr", full_name="Jean (Modérateur Allianz)", role="admin", company_id=company_allianz.id)
     user2 = User(email="sophie.martin@allianz.fr", full_name="Sophie (Gestionnaire Allianz)", role="user", company_id=company_allianz.id)
-    user3 = User(email="marc.bernard@axa.fr", full_name="Marc (Directeur AXA)", role="admin", company_id=company_axa.id)
+    user3 = User(email="marc.bernard@axa.fr", full_name="Marc (Modérateur AXA)", role="admin", company_id=company_axa.id)
     user4 = User(email="marie.petit@axa.fr", full_name="Marie (Gestionnaire AXA)", role="user", company_id=company_axa.id)
     db.add_all([user1, user2, user3, user4])
     db.commit()
