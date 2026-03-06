@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserPlus, MapPin, Briefcase, Euro, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { UserPlus, MapPin, Euro, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { createLawyer } from '../../services/api';
 
 export const AddLawyer: React.FC = () => {
@@ -11,26 +11,43 @@ export const AddLawyer: React.FC = () => {
     const [lastName, setLastName] = useState('');
     const [barAssociation, setBarAssociation] = useState('');
     const [oathDate, setOathDate] = useState('');
-    const [specialtiesStr, setSpecialtiesStr] = useState('');
+    const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
     const [hourlyRate, setHourlyRate] = useState('');
     const [inNetwork, setInNetwork] = useState(false);
 
+    const PREDEFINED_SPECIALTIES = [
+        "Préjudice Corporel",
+        "RC Décennale",
+        "Droit du Travail",
+        "Construction",
+        "Droit Commercial",
+        "Droit de la Famille",
+        "Droit Pénal",
+        "Généraliste"
+    ];
+
+    const toggleSpecialty = (spec: string) => {
+        setSelectedSpecialties(prev =>
+            prev.includes(spec) ? prev.filter(s => s !== spec) : [...prev, spec]
+        );
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSubmitting(true);
 
-        // Process specialties (comma separated list)
-        const specialties = specialtiesStr
-            .split(',')
-            .map(s => s.trim())
-            .filter(s => s.length > 0);
+        if (selectedSpecialties.length === 0) {
+            alert("Veuillez sélectionner au moins une spécialité.");
+            return;
+        }
+
+        setIsSubmitting(true);
 
         const newLawyerData = {
             first_name: firstName,
             last_name: lastName,
             bar_association: barAssociation,
             oath_date: oathDate,
-            specialties: specialties,
+            specialties: selectedSpecialties,
             average_hourly_rate: parseFloat(hourlyRate),
             in_network: inNetwork
         };
@@ -44,7 +61,7 @@ export const AddLawyer: React.FC = () => {
             setLastName('');
             setBarAssociation('');
             setOathDate('');
-            setSpecialtiesStr('');
+            setSelectedSpecialties([]);
             setHourlyRate('');
             setInNetwork(false);
 
@@ -151,19 +168,24 @@ export const AddLawyer: React.FC = () => {
                         <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Expertise & Facturation</h3>
                     </div>
 
-                    <div className="space-y-2 col-span-full md:col-span-1">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Spécialités (séparées par des virgules) <span className="text-red-500">*</span></label>
-                        <div className="relative">
-                            <Briefcase className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
-                            <input
-                                required
-                                value={specialtiesStr}
-                                onChange={(e) => setSpecialtiesStr(e.target.value)}
-                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
-                                placeholder="Préjudice Corporel, Droit Social..."
-                            />
+                    <div className="space-y-3 col-span-full md:col-span-1">
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Spécialités <span className="text-red-500">*</span></label>
+                        <div className="flex flex-wrap gap-2">
+                            {PREDEFINED_SPECIALTIES.map(spec => (
+                                <button
+                                    key={spec}
+                                    type="button"
+                                    onClick={() => toggleSpecialty(spec)}
+                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border ${selectedSpecialties.includes(spec)
+                                        ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700'
+                                        : 'bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                                        }`}
+                                >
+                                    {spec}
+                                </button>
+                            ))}
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Ex: Droit des Assurances, Droit Immobilier</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Sélectionnez une ou plusieurs spécialités.</p>
                     </div>
 
                     <div className="space-y-2">

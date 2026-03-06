@@ -3,6 +3,26 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .database import Base
 
+class Company(Base):
+    __tablename__ = "companies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True, unique=True)
+    
+    users = relationship("User", back_populates="company")
+    reviews = relationship("Review", back_populates="company")
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    full_name = Column(String)
+    role = Column(String, default="user") # "user" or "admin"
+    
+    company_id = Column(Integer, ForeignKey("companies.id"))
+    company = relationship("Company", back_populates="users")
+
 class LawFirm(Base):
     __tablename__ = "law_firms"
 
@@ -21,6 +41,8 @@ class Lawyer(Base):
     bar_association = Column(String)
     oath_date = Column(Date)
     specialties = Column(JSON)  # ["Préjudice Corporel", "RC Décennale"]
+    city = Column(String)
+    firm_type = Column(String)  # e.g., "Individuel", "Cabinet Associé"
     in_network = Column(Boolean, default=False)
     average_hourly_rate = Column(Float)
     
@@ -45,6 +67,7 @@ class Review(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     mission_id = Column(Integer, ForeignKey("missions.id"), unique=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=True) # The company that gave the review
     reactivity_score = Column(Integer) # 1-5
     technical_expertise_score = Column(Integer) # 1-5
     negotiation_score = Column(Integer) # 1-5
@@ -53,3 +76,4 @@ class Review(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     mission = relationship("Mission", back_populates="review")
+    company = relationship("Company", back_populates="reviews")

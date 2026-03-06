@@ -1,7 +1,7 @@
-from fastapi import FastAPI, Depends, Query, HTTPException
+from fastapi import FastAPI, Depends, Query, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from app.db.database import get_db, engine, Base
 from app.db import models
@@ -28,6 +28,14 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"status": "ok", "service": "LexMetric API is running."}
+
+@app.get("/api/auth/demo-users", response_model=List[schemas.User])
+def get_demo_users(db: Session = Depends(get_db)):
+    """
+    Renvoie la liste des utilisateurs de démonstration disponibles.
+    Permet de se connecter facilement en un clic côté Frontend.
+    """
+    return db.query(models.User).all()
 
 @app.get("/api/lawyers", response_model=List[schemas.Lawyer])
 def get_lawyers(db: Session = Depends(get_db)):
@@ -123,21 +131,36 @@ def create_review(review: schemas.ReviewCreate, db: Session = Depends(get_db)):
     return db_review
 
 @app.get("/api/lawyers/{lawyer_id}/reviews", response_model=List[schemas.Review])
-def get_lawyer_reviews(lawyer_id: int, db: Session = Depends(get_db)):
+def get_lawyer_reviews(
+    lawyer_id: int, 
+    x_company_id: Optional[int] = Header(None, description="ID de l'entreprise connectée pour filtrer les avis"),
+    db: Session = Depends(get_db)
+):
     """
     Récupère toutes les évaluations associées à un avocat spécifique.
+    Filtre par entreprise si le header x-company-id est fourni.
     """
     # Verify lawyer exists
     db_lawyer = db.query(models.Lawyer).filter(models.Lawyer.id == lawyer_id).first()
     if not db_lawyer:
         raise HTTPException(status_code=404, detail="Lawyer not found")
         
-    reviews = db.query(models.Review).join(models.Mission).filter(models.Mission.lawyer_id == lawyer_id).all()
-    return reviews
+    query = db.query(models.Review).join(models.Mission).filter(models.Mission.lawyer_id == lawyer_id)
+    
+    # MULTI-TENANT FILTERING
+    if x_company_id:
+        query = query.filter(models.Review.company_id == x_company_id)
+        
+    return query.all()
 
 
 @app.post("/api/lawyers/{lawyer_id}/reviews", response_model=schemas.Review)
-def create_lawyer_review(lawyer_id: int, review: schemas.LawyerReviewCreate, db: Session = Depends(get_db)):
+def create_lawyer_review(
+    lawyer_id: int, 
+    review: schemas.LawyerReviewCreate, 
+    x_company_id: Optional[int] = Header(None, description="ID de l'entreprise qui laisse l'avis"),
+    db: Session = Depends(get_db)
+):
     """
     Raccourci MVP: Permet d'évaluer directement un avocat ou de modifier son évaluation existante.
     """
@@ -179,6 +202,7 @@ def create_lawyer_review(lawyer_id: int, review: schemas.LawyerReviewCreate, db:
     # Create review for that mission
     db_review = models.Review(
         mission_id=existing_mission.id,
+        company_id=x_company_id,
         reactivity_score=review.reactivity_score,
         technical_expertise_score=review.technical_expertise_score,
         negotiation_score=review.negotiation_score,

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Scale, Users, Settings, Bell, Search, BarChart3, Star, UserPlus } from 'lucide-react';
+import { Scale, Users, Settings, Bell, Search, BarChart3, Star, UserPlus, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface NavProps {
     activeTab: 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer';
@@ -7,6 +8,10 @@ interface NavProps {
 }
 
 export const Navigation: React.FC<NavProps> = ({ activeTab, setActiveTab }) => {
+    const { user, logout } = useAuth();
+
+    if (!user) return null;
+
     return (
         <nav className="fixed left-0 top-0 h-screen w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col text-slate-900 dark:text-white z-20 shadow-2xl transition-colors duration-300">
             <div className="p-6 flex items-center space-x-3 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
@@ -15,13 +20,15 @@ export const Navigation: React.FC<NavProps> = ({ activeTab, setActiveTab }) => {
             </div>
 
             <div className="flex-1 py-6 px-4 space-y-2">
-                <button
-                    onClick={() => setActiveTab('dashboard')}
-                    className={`flex w-full items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${activeTab === 'dashboard' ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 shadow-inner' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'}`}
-                >
-                    <BarChart3 className="w-5 h-5" />
-                    <span className="font-medium">Tableau de Bord</span>
-                </button>
+                {user.role === 'admin' && (
+                    <button
+                        onClick={() => setActiveTab('dashboard')}
+                        className={`flex w-full items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${activeTab === 'dashboard' ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 shadow-inner' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'}`}
+                    >
+                        <BarChart3 className="w-5 h-5" />
+                        <span className="font-medium">Tableau de Bord</span>
+                    </button>
+                )}
 
                 <button
                     onClick={() => setActiveTab('search')}
@@ -64,13 +71,16 @@ export const Navigation: React.FC<NavProps> = ({ activeTab, setActiveTab }) => {
                 </button>
 
                 <div className="mt-4 flex items-center space-x-3 px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl transition-colors duration-300">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold shadow-md">
-                        RG
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold shadow-md uppercase">
+                        {user.full_name.substring(0, 2)}
                     </div>
-                    <div className="flex flex-col">
-                        <span className="text-sm font-medium">Raphaël G.</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400">Claims Manager</span>
+                    <div className="flex flex-col flex-1 overflow-hidden">
+                        <span className="text-sm font-medium truncate">{user.full_name.split(' (')[0]}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 truncate text-ellipsis">{user.role === 'admin' ? 'Direction' : 'Gestionnaire'}</span>
                     </div>
+                    <button onClick={logout} className="p-1.5 text-slate-400 hover:text-red-500 transition-colors" title="Déconnexion">
+                        <LogOut className="w-4 h-4" />
+                    </button>
                 </div>
             </div>
         </nav>

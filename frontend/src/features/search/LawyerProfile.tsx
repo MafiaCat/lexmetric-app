@@ -1,5 +1,6 @@
-import React from 'react';
-import { Lawyer } from '../../types';
+import React, { useState, useEffect } from 'react';
+import { Lawyer, Review as ReviewType } from '../../types';
+import { getLawyerReviews } from '../../services/api';
 import {
     ArrowLeft,
     Star,
@@ -20,6 +21,32 @@ interface LawyerProfileProps {
 }
 
 export const LawyerProfile: React.FC<LawyerProfileProps> = ({ lawyer, onBack }) => {
+    const [reviews, setReviews] = useState<ReviewType[]>([]);
+    const [loadingReviews, setLoadingReviews] = useState(true);
+
+    useEffect(() => {
+        const fetchReviews = async () => {
+            setLoadingReviews(true);
+            try {
+                const data = await getLawyerReviews(lawyer.id);
+                setReviews(data);
+            } catch (err) {
+                console.error("Error fetching reviews", err);
+            }
+            setLoadingReviews(false);
+        };
+        fetchReviews();
+    }, [lawyer.id]);
+
+    // Calculate aggregated average score
+    const calculateAverageScore = (rev: ReviewType) => {
+        return (rev.reactivity_score + rev.technical_expertise_score + rev.negotiation_score + rev.fee_respect_score) / 4;
+    };
+
+    const overallAverageScore = reviews.length > 0
+        ? reviews.reduce((acc, rev) => acc + calculateAverageScore(rev), 0) / reviews.length
+        : 0;
+
     // Mock detailed stats since we don't have them all in the model yet
     const stats = {
         casesHandled: Math.floor(Math.random() * 100) + 20,
@@ -79,7 +106,10 @@ export const LawyerProfile: React.FC<LawyerProfileProps> = ({ lawyer, onBack }) 
                             </h1>
                             <p className="text-lg text-slate-600 dark:text-slate-300 mt-1 flex items-center gap-2">
                                 <Briefcase className="w-4 h-4 text-slate-400" />
-                                {lawyer.law_firm_id ? "Membre d'un cabinet associé" : "Avocat Indépendant"}
+                                {lawyer.firm_type}
+                                <span className="text-slate-300 dark:text-slate-600 mx-2">•</span>
+                                <MapPin className="w-4 h-4 text-slate-400" />
+                                {lawyer.city}
                             </p>
                         </div>
                         <div className="flex gap-3">
@@ -150,27 +180,53 @@ export const LawyerProfile: React.FC<LawyerProfileProps> = ({ lawyer, onBack }) 
                 </div>
             </div>
 
-            {/* Ratings Section (Mock data for now) */}
+            {/* Ratings Section (Dynamic) */}
             <div className="bg-white dark:bg-slate-800 p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg mt-8">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Évaluations Récentes (Managers)</h3>
-                <div className="space-y-4">
-                    {[
-                        { date: "Oct 2025", score: 5, comment: "Excellente plaidoirie, le cabinet a su renverser la situation." },
-                        { date: "Sept 2025", score: 4, comment: "Dossier traité sérieusement, légers retards de communication au mois d'août mais résultat positif." }
-                    ].map((review, i) => (
-                        <div key={i} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50">
-                            <div className="flex justify-between items-start mb-2">
-                                <div className="flex gap-1 text-yellow-400">
-                                    {[...Array(5)].map((_, j) => (
-                                        <Star key={j} className="w-4 h-4" fill={j < review.score ? "currentColor" : "none"} />
-                                    ))}
-                                </div>
-                                <span className="text-xs text-slate-500 dark:text-slate-400">{review.date}</span>
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Évaluations Récentes (Managers)</h3>
+                    {reviews.length > 0 && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-xl font-bold dark:text-white">{overallAverageScore.toFixed(1)}</span>
+                            <div className="flex gap-1 text-yellow-400">
+                                {[...Array(5)].map((_, j) => (
+                                    <Star key={j} className="w-5 h-5" fill={j < Math.round(overallAverageScore) ? "currentColor" : "none"} />
+                                ))}
                             </div>
-                            <p className="text-sm text-slate-700 dark:text-slate-300">"{review.comment}"</p>
+                            <span className="text-sm text-slate-500 ml-2">({reviews.length} avis)</span>
                         </div>
-                    ))}
+                    )}
                 </div>
+
+                {loadingReviews ? (
+                    <div className="flex justify-center p-8 animate-pulse text-slate-500">Chargement des avis...</div>
+                ) : reviews.length === 0 ? (
+                    <div className="text-center p-8 text-slate-500 dark:text-slate-400 border border-dashed border-slate-300 rounded-xl">
+                        Aucune évaluation pour le moment.
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {reviews.map((review) => {
+                            const avgScore = calculateAverageScore(review);
+                            return (
+                                <div key={review.id} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="flex gap-1 text-yellow-400">
+                                            {[...Array(5)].map((_, j) => (
+                                                <Star key={j} className="w-4 h-4" fill={j < Math.round(avgScore) ? "currentColor" : "none"} />
+                                            ))}
+                                        </div>
+                                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                                            {new Date(review.created_at).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-slate-700 dark:text-slate-300 mt-2">
+                                        {review.comment ? `"${review.comment}"` : "Aucun commentaire écrit."}
+                                    </p>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
 
         </div>

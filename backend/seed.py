@@ -1,11 +1,17 @@
 import datetime
 from app.db.database import SessionLocal, engine, Base
-from app.db.models import LawFirm, Lawyer, Mission, Review
+from app.db.models import LawFirm, Lawyer, Mission, Review, Company, User
 
-# Ensure tables are created
-Base.metadata.create_all(bind=engine)
+import os
 
 def seed_db():
+    # Remove existing db to force recreation with new schema
+    if os.path.exists("lexmetric.db"):
+        os.remove("lexmetric.db")
+        
+    # Ensure tables are created
+    Base.metadata.create_all(bind=engine)
+    
     db = SessionLocal()
     
     # Check if we already have data
@@ -15,6 +21,21 @@ def seed_db():
         
     print("Seeding database...")
     
+    # 0. Companies and Users
+    company_allianz = Company(name="Allianz")
+    company_axa = Company(name="AXA")
+    db.add_all([company_allianz, company_axa])
+    db.commit()
+    db.refresh(company_allianz)
+    db.refresh(company_axa)
+
+    user1 = User(email="jean.dupont@allianz.fr", full_name="Jean (Directeur Allianz)", role="admin", company_id=company_allianz.id)
+    user2 = User(email="sophie.martin@allianz.fr", full_name="Sophie (Gestionnaire Allianz)", role="user", company_id=company_allianz.id)
+    user3 = User(email="marc.bernard@axa.fr", full_name="Marc (Directeur AXA)", role="admin", company_id=company_axa.id)
+    user4 = User(email="marie.petit@axa.fr", full_name="Marie (Gestionnaire AXA)", role="user", company_id=company_axa.id)
+    db.add_all([user1, user2, user3, user4])
+    db.commit()
+
     # 1. Law Firms
     firm1 = LawFirm(name="Cabinet Dupont & Associés", size=15)
     firm2 = LawFirm(name="LexCorp Paris", size=45)
@@ -31,26 +52,32 @@ def seed_db():
     # 2. Lawyers
     lawyers_data = [
         Lawyer(first_name="Jean", last_name="Dupont", bar_association="Paris", 
+               city="Paris", firm_type="Cabinet Associé",
                oath_date=datetime.date(2010, 1, 1), specialties=["Préjudice Corporel", "RC"], 
                in_network=True, average_hourly_rate=250.0, law_firm_id=firm1.id),
                
         Lawyer(first_name="Marie", last_name="Curie", bar_association="Lyon", 
+               city="Lyon", firm_type="Cabinet Associé",
                oath_date=datetime.date(2015, 5, 12), specialties=["Préjudice Corporel", "Droit du Travail"], 
                in_network=False, average_hourly_rate=300.0, law_firm_id=firm2.id),
                
         Lawyer(first_name="Paul", last_name="Lefebvre", bar_association="Marseille", 
+               city="Aix-en-Provence", firm_type="Individuel",
                oath_date=datetime.date(2020, 9, 1), specialties=["Préjudice Corporel", "Construction", "RC Décennale"], 
                in_network=True, average_hourly_rate=180.0, law_firm_id=None),
                
         Lawyer(first_name="Sophie", last_name="Martin", bar_association="Bordeaux", 
+               city="Bordeaux", firm_type="Cabinet Associé",
                oath_date=datetime.date(2005, 11, 23), specialties=["RC Décennale", "Droit Commercial"], 
                in_network=True, average_hourly_rate=350.0, law_firm_id=firm3.id),
                
         Lawyer(first_name="Lucas", last_name="Bernard", bar_association="Paris", 
+               city="Paris", firm_type="Cabinet Associé",
                oath_date=datetime.date(2018, 3, 15), specialties=["Droit du Travail", "RC"], 
                in_network=False, average_hourly_rate=220.0, law_firm_id=firm1.id),
                
         Lawyer(first_name="Emma", last_name="Petit", bar_association="Lille", 
+               city="Lille", firm_type="Cabinet Associé",
                oath_date=datetime.date(2022, 1, 10), specialties=["Préjudice Corporel", "Droit Commercial"], 
                in_network=True, average_hourly_rate=150.0, law_firm_id=firm2.id),
     ]
@@ -75,11 +102,11 @@ def seed_db():
     db.refresh(mission2)
     db.refresh(mission3)
     
-    review1 = Review(mission_id=mission1.id, reactivity_score=5, technical_expertise_score=4, 
+    review1 = Review(mission_id=mission1.id, company_id=company_allianz.id, reactivity_score=5, technical_expertise_score=4, 
                      negotiation_score=5, fee_respect_score=5, comment="Excellent travail pour une belle indemnisation.")
-    review2 = Review(mission_id=mission2.id, reactivity_score=3, technical_expertise_score=5, 
+    review2 = Review(mission_id=mission2.id, company_id=company_allianz.id, reactivity_score=3, technical_expertise_score=5, 
                      negotiation_score=4, fee_respect_score=3, comment="Bonne technique mais factures un peu au-dessus du devis initial.")
-    review3 = Review(mission_id=mission3.id, reactivity_score=5, technical_expertise_score=5, 
+    review3 = Review(mission_id=mission3.id, company_id=company_axa.id, reactivity_score=5, technical_expertise_score=5, 
                      negotiation_score=5, fee_respect_score=4, comment="Impeccable.")
                      
     db.add_all([review1, review2, review3])

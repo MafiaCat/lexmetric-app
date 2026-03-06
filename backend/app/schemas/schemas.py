@@ -2,6 +2,27 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import date, datetime
 
+class CompanyBase(BaseModel):
+    name: str
+
+class Company(CompanyBase):
+    id: int
+    
+    class Config:
+        orm_mode = True
+
+class UserBase(BaseModel):
+    email: str
+    full_name: str
+    role: str
+    company_id: int
+
+class User(UserBase):
+    id: int
+    
+    class Config:
+        orm_mode = True
+
 class ReviewBase(BaseModel):
     reactivity_score: int
     technical_expertise_score: int
@@ -18,15 +39,18 @@ class LawyerReviewCreate(ReviewBase):
 class Review(ReviewBase):
     id: int
     mission_id: int
+    company_id: Optional[int] = None
     created_at: datetime
     
     class Config:
-        orm_mode = True
+        orm_mode=True
 
 class LawyerBase(BaseModel):
     first_name: str
     last_name: str
     bar_association: str
+    city: str
+    firm_type: str
     oath_date: date
     specialties: List[str]
     in_network: bool
