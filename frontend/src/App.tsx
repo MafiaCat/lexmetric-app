@@ -6,29 +6,12 @@ import { AnalyticsDashboard } from './features/dashboard/Dashboard';
 import { MissionReviewForm } from './features/reviews/MissionReviewForm';
 import { Annuaire } from './features/directory/Annuaire';
 import { AddLawyer } from './features/directory/AddLawyer';
-import { LawyerProfile } from './features/search/LawyerProfile';
-import { DemoLogin } from './features/auth/DemoLogin';
-import { useAuth } from './context/AuthContext';
-import { Lawyer } from './types';
 
 type Tab = 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer';
 
 function App() {
-    const { isAuthenticated, user } = useAuth();
-    const [activeTab, setActiveTab] = useState<Tab>('search'); // Default to search since dashboard is admin-only
+    const [activeTab, setActiveTab] = useState<Tab>('dashboard');
     const [isDarkMode, setIsDarkMode] = useState(false);
-    const [selectedGlobalLawyer, setSelectedGlobalLawyer] = useState<Lawyer | null>(null);
-
-    // Ensure non-admins don't stay on the dashboard tab
-    useEffect(() => {
-        if (user && user.role !== 'admin' && activeTab === 'dashboard') {
-            setActiveTab('search');
-        }
-    }, [user, activeTab]);
-
-    if (!isAuthenticated) {
-        return <DemoLogin />;
-    }
 
     useEffect(() => {
         if (isDarkMode) {
@@ -67,20 +50,11 @@ function App() {
 
                 {/* Feature Component Routing */}
                 <div className="animate-in fade-in duration-500 pt-4">
-                    {selectedGlobalLawyer ? (
-                        <LawyerProfile
-                            lawyer={selectedGlobalLawyer}
-                            onBack={() => setSelectedGlobalLawyer(null)}
-                        />
-                    ) : (
-                        <>
-                            {activeTab === 'dashboard' && <AnalyticsDashboard onLawyerClick={setSelectedGlobalLawyer} />}
-                            {activeTab === 'search' && <LawyerSearch onLawyerClick={setSelectedGlobalLawyer} />}
-                            {activeTab === 'review' && <MissionReviewForm onClose={() => setActiveTab('dashboard')} />}
-                            {activeTab === 'annuaire' && <Annuaire onLawyerClick={setSelectedGlobalLawyer} />}
-                            {activeTab === 'add-lawyer' && <AddLawyer />}
-                        </>
-                    )}
+                    {activeTab === 'dashboard' && <AnalyticsDashboard />}
+                    {activeTab === 'search' && <LawyerSearch />}
+                    {activeTab === 'review' && <MissionReviewForm onClose={() => setActiveTab('dashboard')} />}
+                    {activeTab === 'annuaire' && <Annuaire />}
+                    {activeTab === 'add-lawyer' && <AddLawyer />}
                 </div>
             </main>
         </div>

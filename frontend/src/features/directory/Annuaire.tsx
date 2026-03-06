@@ -3,7 +3,7 @@ import { Users, Search, ShieldCheck, ShieldAlert, MapPin, Briefcase } from 'luci
 import { getLawyers } from '../../services/api';
 import { Lawyer } from '../../types';
 
-export const Annuaire: React.FC<{ onLawyerClick?: (lawyer: Lawyer) => void }> = ({ onLawyerClick }) => {
+export const Annuaire: React.FC = () => {
     const [lawyers, setLawyers] = useState<Lawyer[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -148,11 +148,7 @@ export const Annuaire: React.FC<{ onLawyerClick?: (lawyer: Lawyer) => void }> = 
                     {/* Grid wrapper */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {currentLawyers.map((lawyer) => (
-                            <div
-                                key={lawyer.id}
-                                onClick={() => onLawyerClick && onLawyerClick(lawyer)}
-                                className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 flex flex-col hover:shadow-xl transition-all duration-300 group cursor-pointer"
-                            >
+                            <div key={lawyer.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 flex flex-col hover:shadow-xl transition-all duration-300 group">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-100 to-blue-100 dark:from-indigo-900/40 dark:to-blue-900/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-xl font-bold border border-indigo-200 dark:border-indigo-800/50">
                                         {lawyer.first_name[0]}{lawyer.last_name[0]}

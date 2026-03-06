@@ -1,0 +1,26 @@
+# Environments
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build outputs
+frontend/dist/
+frontend/dist-ssr/
+
+# Node
+frontend/node_modules/
+
+# Python
+backend/venv/
+backend/__pycache__/
+*.pyc
+*.pyo
+
+# Databases
+*.db
+*.sqlite3
+
+# macOS
+.DS_Store
