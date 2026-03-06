@@ -12,6 +12,7 @@ export const DemoLogin: React.FC = () => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
+                // Remove the incorrect nested useEffect and just call the API
                 const users = await getDemoUsers();
                 setDemoUsers(users);
             } catch (error) {
