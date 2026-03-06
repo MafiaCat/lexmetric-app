@@ -9,8 +9,9 @@ import { AddLawyer } from './features/directory/AddLawyer';
 import { useAuth } from './context/AuthContext';
 import { DemoLogin } from './features/auth/DemoLogin';
 import { ModerationDashboard } from './features/moderation/ModerationDashboard';
+import { SupportForm } from './features/support/SupportForm';
 
-type Tab = 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer' | 'moderation';
+type Tab = 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer' | 'moderation' | 'support';
 
 function App() {
     const { isAuthenticated, user } = useAuth();
@@ -70,6 +71,7 @@ function App() {
                     {activeTab === 'review' && <MissionReviewForm onClose={() => setActiveTab('dashboard')} />}
                     {activeTab === 'annuaire' && <Annuaire />}
                     {activeTab === 'add-lawyer' && <AddLawyer />}
+                    {activeTab === 'support' && <SupportForm />}
                 </div>
             </main>
         </div>

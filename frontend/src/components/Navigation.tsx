@@ -1,10 +1,10 @@
 import React from 'react';
-import { Scale, Users, Settings, Bell, Search, BarChart3, Star, UserPlus, LogOut, ShieldCheck } from 'lucide-react';
+import { Scale, Users, Settings, Bell, Search, BarChart3, Star, UserPlus, LogOut, ShieldCheck, HelpCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface NavProps {
-    activeTab: 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer' | 'moderation';
-    setActiveTab: (tab: 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer' | 'moderation') => void;
+    activeTab: 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer' | 'moderation' | 'support';
+    setActiveTab: (tab: 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer' | 'moderation' | 'support') => void;
 }
 
 export const Navigation: React.FC<NavProps> = ({ activeTab, setActiveTab }) => {
@@ -73,6 +73,13 @@ export const Navigation: React.FC<NavProps> = ({ activeTab, setActiveTab }) => {
                 <button className="flex items-center space-x-3 px-4 py-3 w-full text-left text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-xl transition-colors">
                     <Bell className="w-5 h-5" />
                     <span className="font-medium">Notifications</span>
+                </button>
+                <button
+                    onClick={() => setActiveTab('support')}
+                    className={`flex items-center space-x-3 px-4 py-3 w-full text-left rounded-xl transition-colors duration-300 ${activeTab === 'support' ? 'bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 shadow-inner' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'}`}
+                >
+                    <HelpCircle className="w-5 h-5" />
+                    <span className="font-medium">Support</span>
                 </button>
                 <button className="flex items-center space-x-3 px-4 py-3 w-full text-left text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-xl transition-colors">
                     <Settings className="w-5 h-5" />
