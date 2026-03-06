@@ -85,7 +85,7 @@ export const Navigation: React.FC<NavProps> = ({ activeTab, setActiveTab }) => {
                     </div>
                     <div className="flex flex-col flex-1 overflow-hidden">
                         <span className="text-sm font-medium truncate">{user.full_name.split(' (')[0]}</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 truncate text-ellipsis">{user.role === 'admin' ? 'Direction' : 'Gestionnaire'}</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 truncate text-ellipsis">{user.role === 'admin' ? 'Modérateur' : 'Gestionnaire'}</span>
                     </div>
                     <button onClick={logout} className="p-1.5 text-slate-400 hover:text-red-500 transition-colors" title="Déconnexion">
                         <LogOut className="w-4 h-4" />
