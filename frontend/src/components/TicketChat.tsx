@@ -49,7 +49,7 @@ export const TicketChat: React.FC<TicketChatProps> = ({ ticketId }) => {
 
         setIsSending(true);
         try {
-            const createdMsg = await createTicketMessage(ticketId, newMessage.trim(), user.id);
+            const createdMsg = await createTicketMessage(ticketId, newMessage.trim());
             setMessages([...messages, createdMsg]);
             setNewMessage('');
         } catch (error) {
@@ -90,16 +90,16 @@ export const TicketChat: React.FC<TicketChatProps> = ({ ticketId }) => {
                                 <div className={`flex items-end max-w-[80%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
                                     {/* Avatar */}
                                     <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center border ${isMe
-                                            ? 'bg-indigo-100 border-indigo-200 text-indigo-600 dark:bg-indigo-900/50 dark:border-indigo-800'
-                                            : 'bg-slate-200 border-slate-300 text-slate-600 dark:bg-slate-700 dark:border-slate-600'
+                                        ? 'bg-indigo-100 border-indigo-200 text-indigo-600 dark:bg-indigo-900/50 dark:border-indigo-800'
+                                        : 'bg-slate-200 border-slate-300 text-slate-600 dark:bg-slate-700 dark:border-slate-600'
                                         } ${isMe ? 'ml-2' : 'mr-2'}`}>
                                         <UserIcon className="w-4 h-4" />
                                     </div>
 
                                     {/* Bubble */}
                                     <div className={`px-4 py-2.5 rounded-2xl ${isMe
-                                            ? 'bg-indigo-600 text-white rounded-br-sm'
-                                            : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-bl-sm shadow-sm'
+                                        ? 'bg-indigo-600 text-white rounded-br-sm'
+                                        : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-bl-sm shadow-sm'
                                         }`}>
                                         <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                                         <span className={`text-[10px] block mt-1 ${isMe ? 'text-indigo-200 text-right' : 'text-slate-400 text-left'}`}>

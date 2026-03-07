@@ -20,17 +20,13 @@ export const SupportForm: React.FC = () => {
 
         setIsSubmitting(true);
         try {
-            await createTicket(
-                {
-                    ticket_type: ticketType as any,
-                    subject,
-                    description,
-                    priority,
-                    status: 'open'
-                },
-                user.id,
-                user.company_id
-            );
+            await createTicket({
+                ticket_type: ticketType as any,
+                subject,
+                description,
+                priority,
+                status: 'open'
+            });
 
             setIsSuccess(true);
             setSubject('');

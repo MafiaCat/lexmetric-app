@@ -18,9 +18,9 @@ api.interceptors.request.use((config) => {
         try {
             const user = JSON.parse(storedUser);
             if (user) {
-                if (user.company_id) config.headers['x-company-id'] = user.company_id;
-                if (user.id) config.headers['x-user-id'] = user.id;
-                if (user.role) config.headers['x-user-role'] = user.role;
+                if (user.company_id) config.headers.set('x-company-id', user.company_id.toString());
+                if (user.id) config.headers.set('x-user-id', user.id.toString());
+                if (user.role) config.headers.set('x-user-role', user.role);
             }
         } catch (e) {
             console.error("Failed to parse user for auth header", e);
@@ -123,13 +123,8 @@ export const updateTicketStatus = async (ticketId: number, status: string): Prom
     return response.data;
 };
 
-export const createTicket = async (ticketData: any, userId: number, companyId: number): Promise<SupportTicket> => {
-    const response = await api.post('/api/tickets', ticketData, {
-        headers: {
-            'x-user-id': userId,
-            'x-company-id': companyId
-        }
-    });
+export const createTicket = async (ticketData: any): Promise<SupportTicket> => {
+    const response = await api.post('/api/tickets', ticketData);
     return response.data;
 };
 
@@ -138,20 +133,12 @@ export const getTicketMessages = async (ticketId: number): Promise<any[]> => {
     return response.data;
 };
 
-export const createTicketMessage = async (ticketId: number, content: string, userId: number): Promise<any> => {
-    const response = await api.post(`/api/tickets/${ticketId}/messages`, { content }, {
-        headers: {
-            'x-user-id': userId
-        }
-    });
+export const createTicketMessage = async (ticketId: number, content: string): Promise<any> => {
+    const response = await api.post(`/api/tickets/${ticketId}/messages`, { content });
     return response.data;
 };
 
-export const getMyTickets = async (userId: number): Promise<SupportTicket[]> => {
-    const response = await api.get('/api/users/me/tickets', {
-        headers: {
-            'x-user-id': userId
-        }
-    });
+export const getMyTickets = async (): Promise<SupportTicket[]> => {
+    const response = await api.get('/api/users/me/tickets');
     return response.data;
 };

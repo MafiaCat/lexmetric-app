@@ -15,7 +15,7 @@ export const MyTickets: React.FC = () => {
         if (!user) return;
         setLoading(true);
         try {
-            const data = await getMyTickets(user.id);
+            const data = await getMyTickets();
             setTickets(data);
         } catch (error) {
             console.error("Erreur lors de la récupération des tickets", error);

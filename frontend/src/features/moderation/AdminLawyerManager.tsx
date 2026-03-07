@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Upload, Users, AlertCircle, CheckCircle2, Search, Plus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Lawyer } from '../../types';
+import { getLawyers, getPendingLawyers } from '../../services/api';
 
 export const AdminLawyerManager: React.FC = () => {
     const { user } = useAuth();
@@ -14,23 +15,17 @@ export const AdminLawyerManager: React.FC = () => {
 
     const apiUrl = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
 
-    const fetchLawyers = async () => {
+    const fetchLawyersData = async () => {
         setIsLoading(true);
         try {
-            // Fetch ALL lawyers, not just pending ones (requires a dedicated admin route or just fetch all)
-            const response = await fetch(`${apiUrl}/api/lawyers`);
-            const pendingResponse = await fetch(`${apiUrl}/api/moderation/lawyers/pending`);
+            const all = await getLawyers();
+            const pending = await getPendingLawyers();
 
-            let all: Lawyer[] = [];
-            if (response.ok) {
-                const data = await response.json();
-                all = [...data];
-            }
-            if (pendingResponse.ok) {
-                const pendingData = await pendingResponse.json();
-                all = [...all, ...pendingData];
-            }
-            setLawyers(all);
+            // Avoid duplicates if pending lawyers are already returned by getLawyers
+            const allIds = new Set(all.map(l => l.id));
+            const uniquePending = pending.filter(p => !allIds.has(p.id));
+
+            setLawyers([...all, ...uniquePending]);
         } catch (error) {
             console.error(error);
         } finally {
@@ -39,7 +34,7 @@ export const AdminLawyerManager: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchLawyers();
+        fetchLawyersData();
     }, []);
 
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,7 +65,7 @@ export const AdminLawyerManager: React.FC = () => {
             if (response.ok) {
                 const data = await response.json();
                 setUploadSuccess(`${data.created} avocats ont été importés avec succès.`);
-                fetchLawyers(); // Refresh the list
+                fetchLawyersData(); // Refresh the list
             } else {
                 const errData = await response.json();
                 setUploadError(errData.detail || "Erreur lors de l'importation");
