@@ -113,6 +113,16 @@ export const getAdminStats = async (): Promise<any> => {
     return response.data;
 };
 
+export const getAdminReviews = async (): Promise<Review[]> => {
+    const response = await api.get('/api/admin/reviews');
+    return response.data;
+};
+
+export const deleteAdminReview = async (reviewId: number): Promise<any> => {
+    const response = await api.delete(`/api/admin/reviews/${reviewId}`);
+    return response.data;
+};
+
 export const getTickets = async (): Promise<SupportTicket[]> => {
     const response = await api.get('/api/moderation/tickets');
     return response.data;

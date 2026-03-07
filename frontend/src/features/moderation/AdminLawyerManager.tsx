@@ -12,6 +12,7 @@ export const AdminLawyerManager: React.FC = () => {
     const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
     const [uploadError, setUploadError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const apiUrl = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
 
@@ -78,6 +79,12 @@ export const AdminLawyerManager: React.FC = () => {
         }
     };
 
+    const filteredLawyers = lawyers.filter(l =>
+        l.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        l.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        l.bar_association.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div className="animate-in fade-in duration-500">
             <div className="flex justify-between items-end mb-8">
@@ -142,6 +149,8 @@ export const AdminLawyerManager: React.FC = () => {
                         <input
                             type="text"
                             placeholder="Rechercher un avocat..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg pl-9 pr-4 py-2 w-64 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                         />
                     </div>
@@ -171,8 +180,14 @@ export const AdminLawyerManager: React.FC = () => {
                                         Aucun avocat enregistré dans la base de données.
                                     </td>
                                 </tr>
+                            ) : filteredLawyers.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
+                                        Aucun résultat pour "{searchTerm}".
+                                    </td>
+                                </tr>
                             ) : (
-                                lawyers.map((lawyer) => (
+                                filteredLawyers.map((lawyer) => (
                                     <tr key={lawyer.id} className="hover:bg-slate-800/20 transition-colors">
                                         <td className="px-6 py-4 font-medium text-slate-200">
                                             Me {lawyer.first_name} {lawyer.last_name}
@@ -187,7 +202,10 @@ export const AdminLawyerManager: React.FC = () => {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <button className="text-indigo-400 hover:text-indigo-300 font-medium text-xs">Éditer fiche</button>
+                                            <button
+                                                onClick={() => alert("L\'édition de fiche sera disponible dans la Phase 4.")}
+                                                className="text-indigo-400 hover:text-indigo-300 font-medium text-xs">Éditer fiche
+                                            </button>
                                         </td>
                                     </tr>
                                 ))

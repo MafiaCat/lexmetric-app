@@ -430,3 +430,33 @@ def get_audit_logs(db: Session = Depends(get_db), is_admin: bool = Depends(verif
     """
     return db.query(models.AuditLog).order_by(models.AuditLog.created_at.desc()).limit(100).all()
 
+@app.get("/api/admin/reviews", response_model=List[schemas.Review])
+def get_all_reviews(db: Session = Depends(get_db), is_admin: bool = Depends(verify_admin)):
+    """
+    Modérateur : Récupère tous les avis pour les modérer.
+    """
+    return db.query(models.Review).order_by(models.Review.created_at.desc()).all()
+
+@app.delete("/api/admin/reviews/{review_id}")
+def delete_review(review_id: int, db: Session = Depends(get_db), is_admin: bool = Depends(verify_admin)):
+    """
+    Modérateur : Supprime un avis abusif ou inapproprié.
+    """
+    db_review = db.query(models.Review).filter(models.Review.id == review_id).first()
+    if not db_review:
+        raise HTTPException(status_code=404, detail="Review not found")
+        
+    db.delete(db_review)
+    db.commit()
+    
+    # Log the action (hardcoded admin_id=1 for MVP)
+    audit_log = models.AuditLog(
+        user_id=1,
+        action="DELETE_REVIEW",
+        target_resource=f"Review ID {review_id} deleted"
+    )
+    db.add(audit_log)
+    db.commit()
+    
+    return {"message": "Review deleted successfully"}
+

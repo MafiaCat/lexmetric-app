@@ -5,6 +5,7 @@ import { AdminDashboardStats } from './features/moderation/AdminDashboardStats';
 import { AdminLawyerManager } from './features/moderation/AdminLawyerManager';
 import { AdminUserManager } from './features/moderation/AdminUserManager';
 import { AdminAuditLogs } from './features/moderation/AdminAuditLogs';
+import { AdminReviewsManager } from './features/moderation/AdminReviewsManager';
 import { useAuth } from './context/AuthContext';
 
 type AdminTab = 'overview' | 'lawyers' | 'reviews' | 'users' | 'tickets' | 'audit' | 'settings';
@@ -111,15 +112,18 @@ export function ModeratorApp() {
                     {/* Ticketing is using old ModerationDashboard (to be broken down next) */}
                     {activeTab === 'tickets' && <ModerationDashboard />}
 
-                    {activeTab === 'reviews' && (
-                        <div className="p-12 text-center border-2 border-dashed border-slate-800 rounded-2xl">
-                            <h2 className="text-xl font-semibold text-slate-300">Modération des Avis</h2>
-                            <p className="text-slate-500 mt-2">Module en cours de construction (Phase 3)</p>
-                        </div>
-                    )}
+                    {activeTab === 'reviews' && <AdminReviewsManager />}
 
                     {activeTab === 'users' && <AdminUserManager />}
                     {activeTab === 'audit' && <AdminAuditLogs />}
+
+                    {activeTab === 'settings' && (
+                        <div className="p-12 text-center border border-slate-800 rounded-2xl bg-slate-900/50">
+                            <Settings className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+                            <h2 className="text-xl font-semibold text-slate-300">Paramètres Généraux</h2>
+                            <p className="text-slate-500 mt-2">Aucun paramètre global n'est configurable pour le moment.</p>
+                        </div>
+                    )}
                 </div>
             </main>
         </div>
