@@ -61,6 +61,18 @@ class LawyerBase(BaseModel):
 class LawyerCreate(LawyerBase):
     pass
 
+class LawyerUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    bar_association: Optional[str] = None
+    city: Optional[str] = None
+    firm_type: Optional[str] = None
+    oath_date: Optional[date] = None
+    specialties: Optional[List[str]] = None
+    in_network: Optional[bool] = None
+    average_hourly_rate: Optional[float] = None
+    status: Optional[str] = None
+
 class Lawyer(LawyerBase):
     id: int
     

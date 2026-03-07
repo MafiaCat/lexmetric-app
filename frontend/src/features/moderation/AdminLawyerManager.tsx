@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Upload, Users, AlertCircle, CheckCircle2, Search, Plus } from 'lucide-react';
+import { Upload, Users, AlertCircle, CheckCircle2, Search, Plus, X, Save } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Lawyer } from '../../types';
-import { getLawyers, getPendingLawyers } from '../../services/api';
+import { getLawyers, getPendingLawyers, updateAdminLawyer } from '../../services/api';
 
 export const AdminLawyerManager: React.FC = () => {
     const { user } = useAuth();
@@ -13,6 +13,10 @@ export const AdminLawyerManager: React.FC = () => {
     const [uploadError, setUploadError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Modal Edit State
+    const [editingLawyer, setEditingLawyer] = useState<Lawyer | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     const apiUrl = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
 
@@ -76,6 +80,30 @@ export const AdminLawyerManager: React.FC = () => {
         } finally {
             setIsUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
+    const handleSaveEdit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingLawyer) return;
+
+        setIsSaving(true);
+        try {
+            await updateAdminLawyer(editingLawyer.id, {
+                first_name: editingLawyer.first_name,
+                last_name: editingLawyer.last_name,
+                bar_association: editingLawyer.bar_association,
+                city: editingLawyer.city,
+                average_hourly_rate: editingLawyer.average_hourly_rate
+            });
+            setUploadSuccess(`Le profil de Me ${editingLawyer.last_name} a été mis à jour.`);
+            setEditingLawyer(null);
+            fetchLawyersData();
+        } catch (error) {
+            console.error(error);
+            setUploadError("Erreur lors de la mise à jour du profil.");
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -214,6 +242,87 @@ export const AdminLawyerManager: React.FC = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Edit Modal */}
+            {editingLawyer && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+                    <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center p-6 border-b border-slate-800">
+                            <h3 className="text-xl font-bold text-white">Éditer le profil</h3>
+                            <button onClick={() => setEditingLawyer(null)} className="text-slate-400 hover:text-white transition-colors">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSaveEdit} className="p-6 space-y-4 text-sm text-slate-300">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="font-medium text-slate-400">Prénom</label>
+                                    <input
+                                        type="text"
+                                        value={editingLawyer.first_name}
+                                        onChange={(e) => setEditingLawyer({ ...editingLawyer, first_name: e.target.value })}
+                                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="font-medium text-slate-400">Nom</label>
+                                    <input
+                                        type="text"
+                                        value={editingLawyer.last_name}
+                                        onChange={(e) => setEditingLawyer({ ...editingLawyer, last_name: e.target.value })}
+                                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="font-medium text-slate-400">Barreau</label>
+                                <input
+                                    type="text"
+                                    value={editingLawyer.bar_association}
+                                    onChange={(e) => setEditingLawyer({ ...editingLawyer, bar_association: e.target.value })}
+                                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="font-medium text-slate-400">Ville</label>
+                                    <input
+                                        type="text"
+                                        value={editingLawyer.city || ''}
+                                        onChange={(e) => setEditingLawyer({ ...editingLawyer, city: e.target.value })}
+                                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="font-medium text-slate-400">Taux Hor. (€)</label>
+                                    <input
+                                        type="number"
+                                        value={editingLawyer.average_hourly_rate}
+                                        onChange={(e) => setEditingLawyer({ ...editingLawyer, average_hourly_rate: Number(e.target.value) })}
+                                        className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="pt-4 flex justify-end gap-3">
+                                <button type="button" onClick={() => setEditingLawyer(null)} className="px-4 py-2 text-slate-300 hover:text-white transition-colors">
+                                    Annuler
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSaving}
+                                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+                                >
+                                    {isSaving ? 'Enregistrement...' : <><Save className="w-4 h-4" /> Enregistrer</>}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

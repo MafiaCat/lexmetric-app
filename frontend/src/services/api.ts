@@ -108,6 +108,11 @@ export const updateLawyerStatus = async (lawyerId: number, status: string): Prom
     return response.data;
 };
 
+export const updateAdminLawyer = async (lawyerId: number, data: any): Promise<Lawyer> => {
+    const response = await api.put(`/api/admin/lawyers/${lawyerId}`, data);
+    return response.data;
+};
+
 export const getAdminStats = async (): Promise<any> => {
     const response = await api.get('/api/admin/stats');
     return response.data;

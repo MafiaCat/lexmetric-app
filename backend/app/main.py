@@ -240,6 +240,33 @@ def update_lawyer_status(lawyer_id: int, status_update: schemas.LawyerStatusUpda
     db.refresh(db_lawyer)
     return db_lawyer
 
+@app.put("/api/admin/lawyers/{lawyer_id}", response_model=schemas.Lawyer)
+def update_lawyer_details(lawyer_id: int, lawyer_update: schemas.LawyerUpdate, db: Session = Depends(get_db), is_admin: bool = Depends(verify_admin)):
+    """
+    Modérateur : Mettre à jour les informations d'un cabinet/avocat.
+    """
+    db_lawyer = db.query(models.Lawyer).filter(models.Lawyer.id == lawyer_id).first()
+    if not db_lawyer:
+        raise HTTPException(status_code=404, detail="Lawyer not found")
+        
+    update_data = lawyer_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_lawyer, key, value)
+        
+    db.commit()
+    db.refresh(db_lawyer)
+    
+    # Trace the action
+    audit_log = models.AuditLog(
+        user_id=1,
+        action="UPDATE_LAWYER",
+        target_resource=f"Lawyer ID {lawyer_id} updated"
+    )
+    db.add(audit_log)
+    db.commit()
+    
+    return db_lawyer
+
 @app.get("/api/moderation/tickets", response_model=List[schemas.SupportTicket])
 def get_all_tickets(db: Session = Depends(get_db)):
     """
