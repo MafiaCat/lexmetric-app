@@ -10,6 +10,8 @@ export const AddLawyer: React.FC = () => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [barAssociation, setBarAssociation] = useState('');
+    const [city, setCity] = useState('');
+    const [firmType, setFirmType] = useState('Cabinet Associé');
     const [oathDate, setOathDate] = useState('');
     const [specialtiesStr, setSpecialtiesStr] = useState('');
     const [hourlyRate, setHourlyRate] = useState('');
@@ -29,6 +31,8 @@ export const AddLawyer: React.FC = () => {
             first_name: firstName,
             last_name: lastName,
             bar_association: barAssociation,
+            city: city,
+            firm_type: firmType,
             oath_date: oathDate,
             specialties: specialties,
             average_hourly_rate: parseFloat(hourlyRate),
@@ -43,6 +47,8 @@ export const AddLawyer: React.FC = () => {
             setFirstName('');
             setLastName('');
             setBarAssociation('');
+            setCity('');
+            setFirmType('Cabinet Associé');
             setOathDate('');
             setSpecialtiesStr('');
             setHourlyRate('');
@@ -131,6 +137,34 @@ export const AddLawyer: React.FC = () => {
                                 placeholder="Paris, Lyon, Marseille..."
                             />
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Ville d'exercice <span className="text-red-500">*</span></label>
+                        <div className="relative">
+                            <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
+                            <input
+                                required
+                                value={city}
+                                onChange={(e) => setCity(e.target.value)}
+                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+                                placeholder="Paris, Lyon, Marseille..."
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Type de structure <span className="text-red-500">*</span></label>
+                        <select
+                            required
+                            value={firmType}
+                            onChange={(e) => setFirmType(e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 appearance-none"
+                        >
+                            <option value="Individuel">Exercice Individuel</option>
+                            <option value="Cabinet Associé">Cabinet Associé</option>
+                            <option value="Réseau">Réseau National</option>
+                        </select>
                     </div>
 
                     <div className="space-y-2">

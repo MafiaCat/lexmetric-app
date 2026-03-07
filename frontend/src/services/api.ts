@@ -17,8 +17,10 @@ api.interceptors.request.use((config) => {
     if (storedUser) {
         try {
             const user = JSON.parse(storedUser);
-            if (user && user.company_id) {
-                config.headers['x-company-id'] = user.company_id;
+            if (user) {
+                if (user.company_id) config.headers['x-company-id'] = user.company_id;
+                if (user.id) config.headers['x-user-id'] = user.id;
+                if (user.role) config.headers['x-user-role'] = user.role;
             }
         } catch (e) {
             console.error("Failed to parse user for auth header", e);
@@ -103,6 +105,11 @@ export const getPendingLawyers = async (): Promise<Lawyer[]> => {
 
 export const updateLawyerStatus = async (lawyerId: number, status: string): Promise<Lawyer> => {
     const response = await api.put(`/api/moderation/lawyers/${lawyerId}/status`, { status });
+    return response.data;
+};
+
+export const getAdminStats = async (): Promise<any> => {
+    const response = await api.get('/api/admin/stats');
     return response.data;
 };
 

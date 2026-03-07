@@ -15,6 +15,7 @@ export const LawyerSearch: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [searched, setSearched] = useState(false);
     const [selectedLawyer, setSelectedLawyer] = useState<Lawyer | null>(null);
+    const [displayLimit, setDisplayLimit] = useState(20);
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -28,6 +29,7 @@ export const LawyerSearch: React.FC = () => {
         }
         setLoading(false);
         setSearched(true);
+        setDisplayLimit(20);
     };
 
     if (selectedLawyer) {
@@ -132,7 +134,7 @@ export const LawyerSearch: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-1 gap-4">
-                        {results.map((lawyer, index) => (
+                        {results.slice(0, displayLimit).map((lawyer, index) => (
                             <div key={lawyer.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5 flex items-center justify-between hover:border-slate-300 dark:hover:border-slate-600 transition-colors group relative overflow-hidden shadow-sm">
                                 {/* Visual rank decorator */}
                                 {index === 0 && <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-yellow-400 to-yellow-600" />}
@@ -204,6 +206,17 @@ export const LawyerSearch: React.FC = () => {
                             </div>
                         ))}
                     </div>
+
+                    {results.length > displayLimit && (
+                        <div className="flex justify-center mt-6">
+                            <button
+                                onClick={() => setDisplayLimit(prev => prev + 20)}
+                                className="px-6 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+                            >
+                                Voir plus de résultats ({results.length - displayLimit} restants)
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

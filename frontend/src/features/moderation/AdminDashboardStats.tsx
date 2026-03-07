@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Users, Building2, Scale, AlertCircle, FileText, Ticket } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { getAdminStats } from '../../services/api';
 
 interface AdminStats {
     total_users: number;
@@ -19,18 +20,8 @@ export const AdminDashboardStats: React.FC = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                // Directly call the endpoint with fetch, injecting the x-user-role header.
-                const apiUrl = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
-                const response = await fetch(`${apiUrl}/api/admin/stats`, {
-                    headers: {
-                        'x-user-role': user?.role || ''
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setStats(data);
-                }
+                const data = await getAdminStats();
+                setStats(data);
             } catch (error) {
                 console.error("Failed to fetch admin stats:", error);
             } finally {
