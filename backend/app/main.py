@@ -240,6 +240,11 @@ def update_lawyer_status(lawyer_id: int, status_update: schemas.LawyerStatusUpda
     db.refresh(db_lawyer)
     return db_lawyer
 
+def verify_admin(x_user_role: str = Header(None)):
+    if x_user_role != "admin":
+        raise HTTPException(status_code=403, detail="Forbidden. Admin access required.")
+    return True
+
 @app.put("/api/admin/lawyers/{lawyer_id}", response_model=schemas.Lawyer)
 def update_lawyer_details(lawyer_id: int, lawyer_update: schemas.LawyerUpdate, db: Session = Depends(get_db), is_admin: bool = Depends(verify_admin)):
     """
@@ -351,11 +356,6 @@ def create_ticket_message(
     return db_message
 
 # --- ADMIN SUPERPOWERS & STATS API --- #
-
-def verify_admin(x_user_role: str = Header(None)):
-    if x_user_role != "admin":
-        raise HTTPException(status_code=403, detail="Forbidden. Admin access required.")
-    return True
 
 @app.get("/api/admin/stats")
 def get_admin_stats(db: Session = Depends(get_db), is_admin: bool = Depends(verify_admin)):
