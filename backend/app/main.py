@@ -1,4 +1,7 @@
-from fastapi import FastAPI, Depends, Query, HTTPException, Header
+import csv
+import io
+import json
+from fastapi import FastAPI, Depends, Query, HTTPException, Header, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -273,4 +276,111 @@ def create_ticket(
     db.commit()
     db.refresh(db_ticket)
     return db_ticket
+
+# --- ADMIN SUPERPOWERS & STATS API --- #
+
+def verify_admin(x_user_role: str = Header(None)):
+    if x_user_role != "admin":
+        raise HTTPException(status_code=403, detail="Forbidden. Admin access required.")
+    return True
+
+@app.get("/api/admin/stats")
+def get_admin_stats(db: Session = Depends(get_db), is_admin: bool = Depends(verify_admin)):
+    """
+    Modérateur : Récupère les métriques globales de la plateforme.
+    """
+    total_users = db.query(models.User).count()
+    total_companies = db.query(models.Company).count()
+    total_lawyers = db.query(models.Lawyer).count()
+    pending_lawyers = db.query(models.Lawyer).filter(models.Lawyer.status == "pending").count()
+    total_reviews = db.query(models.Review).count()
+    open_tickets = db.query(models.SupportTicket).filter(models.SupportTicket.status == "open").count()
+    
+    return {
+        "total_users": total_users,
+        "total_companies": total_companies,
+        "total_lawyers": total_lawyers,
+        "pending_lawyers": pending_lawyers,
+        "total_reviews": total_reviews,
+        "open_tickets": open_tickets
+    }
+
+@app.post("/api/admin/lawyers/bulk", status_code=201)
+async def upload_lawyers_bulk(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    is_admin: bool = Depends(verify_admin)
+):
+    """
+    Modérateur : Importer une liste d'avocats depuis un CSV.
+    Le fichier doit contenir: first_name, last_name, bar_association, city, specialties (json), average_hourly_rate
+    """
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="Invalid file format. Please upload a CSV.")
+
+    contents = await file.read()
+    try:
+        decoded = contents.decode('utf-8')
+    except Exception:
+        decoded = contents.decode('latin1')
+
+    # Read CSV
+    reader = csv.DictReader(io.StringIO(decoded), delimiter=',')
+    
+    created_count = 0
+    for row in reader:
+        # Standardise specialties parsing
+        specialties = []
+        if 'specialties' in row and row['specialties']:
+            try:
+                # Support "['Droit des assurances', 'Droit de la construction']" format or just comma separated
+                if row['specialties'].startswith('['):
+                    specialties = json.loads(row['specialties'].replace("'", '"'))
+                else:
+                    specialties = [s.strip() for s in row['specialties'].split(',')]
+            except Exception:
+                specialties = [row['specialties']]
+
+        rate = 200.0
+        if 'average_hourly_rate' in row and row['average_hourly_rate']:
+            try:
+                rate = float(row['average_hourly_rate'])
+            except:
+                pass
+
+        lawyer = models.Lawyer(
+            first_name=row.get('first_name', 'Unknown'),
+            last_name=row.get('last_name', 'Unknown'),
+            bar_association=row.get('bar_association', 'Paris'),
+            city=row.get('city', 'Paris'),
+            specialties=specialties,
+            average_hourly_rate=rate,
+            in_network=str(row.get('in_network', '')).lower() == 'true',
+            status="approved" # Autovalidé vu que c'est le modo qui importe
+        )
+        db.add(lawyer)
+        created_count += 1
+        
+    db.commit()
+    
+    # Try to extract the user_id of the admin making the request (using a dummy ID 1 if not passed for MVP)
+    # Ideally, would extract x-user-id from headers if passed from frontend
+    admin_id = 1 
+    # Log the action
+    audit_log = models.AuditLog(
+        user_id=admin_id,
+        action="IMPORT_LAWYERS_CSV",
+        target_resource=f"{created_count} lawyers imported"
+    )
+    db.add(audit_log)
+    db.commit()
+    
+    return {"message": "Import successful", "created": created_count}
+
+@app.get("/api/admin/audit-logs", response_model=List[schemas.AuditLog])
+def get_audit_logs(db: Session = Depends(get_db), is_admin: bool = Depends(verify_admin)):
+    """
+    Modérateur : Consulte l'historique des actions de modération.
+    """
+    return db.query(models.AuditLog).order_by(models.AuditLog.created_at.desc()).limit(100).all()
 

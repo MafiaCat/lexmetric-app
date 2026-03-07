@@ -95,3 +95,15 @@ class SupportTicket(SupportTicketBase):
 
 class SupportTicketStatusUpdate(BaseModel):
     status: str
+
+class AuditLogBase(BaseModel):
+    action: str
+    target_resource: Optional[str] = None
+
+class AuditLog(AuditLogBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    
+    class Config:
+        orm_mode = True
