@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { SupportTicket } from '../../types';
-import { getTickets, updateTicketStatus } from '../../services/api';
+import { getTickets, updateTicketStatus, updateTicketType } from '../../services/api';
 import { Ticket, AlertTriangle, Bug, Zap, CreditCard, HelpCircle, CheckCircle2, MessageSquare } from 'lucide-react';
 import { TicketChat } from '../../components/TicketChat';
 
@@ -35,6 +35,15 @@ export const SupportTicketsTable: React.FC = () => {
         }
     };
 
+    const handleUpdateType = async (ticketId: number, type: string) => {
+        try {
+            const updated = await updateTicketType(ticketId, type);
+            setTickets(tickets.map(t => t.id === ticketId ? updated : t));
+        } catch (error) {
+            console.error("Erreur de re-classification", error);
+        }
+    };
+
     const handleReply = (ticket: SupportTicket) => {
         setSelectedTicketId(selectedTicketId === ticket.id ? null : ticket.id);
         if (ticket.status === 'open') {
@@ -52,16 +61,7 @@ export const SupportTicketsTable: React.FC = () => {
         }
     };
 
-    const getTypeLabel = (type: string) => {
-        switch (type) {
-            case 'profile_update': return 'Mise à jour profil';
-            case 'fake_review_report': return 'Signalement abus';
-            case 'bug_report': return 'Bug technique';
-            case 'feature_request': return 'Amélioration';
-            case 'billing_issue': return 'Facturation';
-            default: return 'Autre demande';
-        }
-    };
+
 
     const getStatusStyle = (status: string) => {
         switch (status) {
@@ -96,7 +96,18 @@ export const SupportTicketsTable: React.FC = () => {
                             </span>
                             <div className="flex items-center gap-1.5 text-sm font-medium text-slate-600 dark:text-slate-300">
                                 {getTypeIcon(ticket.ticket_type)}
-                                {getTypeLabel(ticket.ticket_type)}
+                                <select
+                                    value={ticket.ticket_type}
+                                    onChange={(e) => handleUpdateType(ticket.id, e.target.value)}
+                                    className="bg-transparent border-none p-0 focus:ring-0 cursor-pointer hover:underline text-sm font-semibold"
+                                >
+                                    <option value="profile_update">Mise à jour profil</option>
+                                    <option value="fake_review_report">Signalement abus</option>
+                                    <option value="bug_report">Bug technique</option>
+                                    <option value="feature_request">Amélioration</option>
+                                    <option value="billing_issue">Facturation</option>
+                                    <option value="other">Autre demande</option>
+                                </select>
                             </div>
                         </div>
                         <span className="text-xs text-slate-400 font-mono">
@@ -128,8 +139,8 @@ export const SupportTicketsTable: React.FC = () => {
                                     <button
                                         onClick={() => handleReply(ticket)}
                                         className={`px-4 py-1.5 shadow-md text-sm font-medium rounded-lg transition-transform active:scale-95 flex items-center gap-2 ${selectedTicketId === ticket.id
-                                                ? 'bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-200 shadow-slate-500/10'
-                                                : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20'
+                                            ? 'bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-200 shadow-slate-500/10'
+                                            : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20'
                                             }`}
                                     >
                                         <MessageSquare className="w-4 h-4" />

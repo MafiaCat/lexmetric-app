@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldAlert, Search, Activity } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { getAdminAuditLogs } from '../../services/api';
 
 interface AuditLog {
     id: number;
@@ -11,24 +11,14 @@ interface AuditLog {
 }
 
 export const AdminAuditLogs: React.FC = () => {
-    const { user } = useAuth();
     const [logs, setLogs] = useState<AuditLog[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-
-    const apiUrl = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
 
     const fetchLogs = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(`${apiUrl}/api/admin/audit-logs`, {
-                headers: {
-                    'x-user-role': user?.role || ''
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setLogs(data);
-            }
+            const data = await getAdminAuditLogs();
+            setLogs(data);
         } catch (error) {
             console.error(error);
         } finally {

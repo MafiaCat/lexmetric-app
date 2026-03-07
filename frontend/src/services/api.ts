@@ -97,6 +97,16 @@ export const getDemoUsers = async (): Promise<User[]> => {
     return response.data;
 };
 
+export const getAdminUsers = async (): Promise<User[]> => {
+    const response = await api.get('/api/admin/users');
+    return response.data;
+};
+
+export const updateUserRole = async (userId: number, role: string): Promise<User> => {
+    const response = await api.put(`/api/admin/users/${userId}/role`, { role });
+    return response.data;
+};
+
 // --- MODERATION API --- //
 export const getPendingLawyers = async (): Promise<Lawyer[]> => {
     const response = await api.get('/api/moderation/lawyers/pending');
@@ -128,6 +138,11 @@ export const deleteAdminReview = async (reviewId: number): Promise<any> => {
     return response.data;
 };
 
+export const getAdminAuditLogs = async (): Promise<any[]> => {
+    const response = await api.get('/api/admin/audit-logs');
+    return response.data;
+};
+
 export const getTickets = async (): Promise<SupportTicket[]> => {
     const response = await api.get('/api/moderation/tickets');
     return response.data;
@@ -135,6 +150,11 @@ export const getTickets = async (): Promise<SupportTicket[]> => {
 
 export const updateTicketStatus = async (ticketId: number, status: string): Promise<SupportTicket> => {
     const response = await api.put(`/api/moderation/tickets/${ticketId}/status`, { status });
+    return response.data;
+};
+
+export const updateTicketType = async (ticketId: number, ticketType: string): Promise<SupportTicket> => {
+    const response = await api.put(`/api/moderation/tickets/${ticketId}/type`, { ticket_type: ticketType });
     return response.data;
 };
 

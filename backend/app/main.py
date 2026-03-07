@@ -280,15 +280,29 @@ def get_all_tickets(db: Session = Depends(get_db)):
     return db.query(models.SupportTicket).order_by(models.SupportTicket.created_at.desc()).all()
 
 @app.put("/api/moderation/tickets/{ticket_id}/status", response_model=schemas.SupportTicket)
-def update_ticket_status(ticket_id: int, status_update: schemas.SupportTicketStatusUpdate, db: Session = Depends(get_db)):
+def update_ticket_status(ticket_id: int, status_update: dict, db: Session = Depends(get_db), is_admin: bool = Depends(verify_admin)):
     """
-    Modérateur : Mettre à jour le statut d'un ticket.
+    Modérateur : Met à jour le statut d'un ticket.
     """
     db_ticket = db.query(models.SupportTicket).filter(models.SupportTicket.id == ticket_id).first()
     if not db_ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
-        
-    db_ticket.status = status_update.status
+    
+    db_ticket.status = status_update.get("status")
+    db.commit()
+    db.refresh(db_ticket)
+    return db_ticket
+
+@app.put("/api/moderation/tickets/{ticket_id}/type", response_model=schemas.SupportTicket)
+def update_ticket_type(ticket_id: int, type_update: dict, db: Session = Depends(get_db), is_admin: bool = Depends(verify_admin)):
+    """
+    Modérateur : Re-classifie un ticket (change son type).
+    """
+    db_ticket = db.query(models.SupportTicket).filter(models.SupportTicket.id == ticket_id).first()
+    if not db_ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    
+    db_ticket.ticket_type = type_update.get("ticket_type")
     db.commit()
     db.refresh(db_ticket)
     return db_ticket
@@ -455,7 +469,38 @@ def get_audit_logs(db: Session = Depends(get_db), is_admin: bool = Depends(verif
     """
     Modérateur : Consulte l'historique des actions de modération.
     """
-    return db.query(models.AuditLog).order_by(models.AuditLog.created_at.desc()).limit(100).all()
+    return db.query(models.AuditLog).order_by(models.AuditLog.created_at.desc()).limit(200).all()
+
+@app.get("/api/admin/users", response_model=List[schemas.User])
+def get_all_users(db: Session = Depends(get_db), is_admin: bool = Depends(verify_admin)):
+    """
+    Modérateur : Liste tous les utilisateurs de la plateforme.
+    """
+    return db.query(models.User).all()
+
+@app.put("/api/admin/users/{user_id}/role", response_model=schemas.User)
+def update_user_role(user_id: int, role_update: dict, db: Session = Depends(get_db), is_admin: bool = Depends(verify_admin)):
+    """
+    Modérateur : Change le rôle d'un utilisateur (ex: promouvoir admin).
+    """
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    db_user.role = role_update.get("role")
+    db.commit()
+    db.refresh(db_user)
+    
+    # Audit trail
+    audit_log = models.AuditLog(
+        user_id=1, # Admin ID 1 for MVP
+        action="UPDATE_USER_ROLE",
+        target_resource=f"User {user_id} set to role {db_user.role}"
+    )
+    db.add(audit_log)
+    db.commit()
+    
+    return db_user
 
 @app.get("/api/admin/reviews", response_model=List[schemas.Review])
 def get_all_reviews(db: Session = Depends(get_db), is_admin: bool = Depends(verify_admin)):
