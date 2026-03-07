@@ -277,6 +277,52 @@ def create_ticket(
     db.refresh(db_ticket)
     return db_ticket
 
+@app.get("/api/users/me/tickets", response_model=List[schemas.SupportTicket])
+def get_my_tickets(
+    x_user_id: int = Header(..., description="ID de l'utilisateur qui récupère ses tickets"),
+    db: Session = Depends(get_db)
+):
+    """
+    Gestionnaire : Récupérer ses propres tickets de support.
+    """
+    return db.query(models.SupportTicket).filter(models.SupportTicket.user_id == x_user_id).order_by(models.SupportTicket.created_at.desc()).all()
+
+@app.get("/api/tickets/{ticket_id}/messages", response_model=List[schemas.TicketMessage])
+def get_ticket_messages(
+    ticket_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Récupère tous les messages d'un ticket spécifique, triés par date de création.
+    """
+    messages = db.query(models.TicketMessage).filter(models.TicketMessage.ticket_id == ticket_id).order_by(models.TicketMessage.created_at.asc()).all()
+    return messages
+
+@app.post("/api/tickets/{ticket_id}/messages", response_model=schemas.TicketMessage)
+def create_ticket_message(
+    ticket_id: int,
+    message: schemas.TicketMessageCreate,
+    x_user_id: int = Header(..., description="ID de l'utilisateur qui envoie le message"),
+    db: Session = Depends(get_db)
+):
+    """
+    Ajoute un nouveau message au fil de discussion d'un ticket.
+    """
+    # Verify ticket exists
+    db_ticket = db.query(models.SupportTicket).filter(models.SupportTicket.id == ticket_id).first()
+    if not db_ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+    db_message = models.TicketMessage(
+        ticket_id=ticket_id,
+        sender_id=x_user_id,
+        content=message.content
+    )
+    db.add(db_message)
+    db.commit()
+    db.refresh(db_message)
+    return db_message
+
 # --- ADMIN SUPERPOWERS & STATS API --- #
 
 def verify_admin(x_user_role: str = Header(None)):

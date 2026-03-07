@@ -7,9 +7,10 @@ import { MissionReviewForm } from './features/reviews/MissionReviewForm';
 import { Annuaire } from './features/directory/Annuaire';
 import { AddLawyer } from './features/directory/AddLawyer';
 import { SupportForm } from './features/support/SupportForm';
+import { MyTickets } from './features/support/MyTickets';
 import { useAuth } from './context/AuthContext';
 
-type Tab = 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer' | 'support';
+type Tab = 'dashboard' | 'search' | 'review' | 'annuaire' | 'add-lawyer' | 'support' | 'my-tickets';
 
 export function UserApp() {
     const { user, originalAdminUser, stopImpersonating } = useAuth();
@@ -77,6 +78,7 @@ export function UserApp() {
                     {activeTab === 'annuaire' && <Annuaire />}
                     {activeTab === 'add-lawyer' && <AddLawyer />}
                     {activeTab === 'support' && <SupportForm />}
+                    {activeTab === 'my-tickets' && <MyTickets />}
                 </div>
             </main>
         </div>

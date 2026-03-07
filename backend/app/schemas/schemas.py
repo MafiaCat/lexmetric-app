@@ -96,6 +96,21 @@ class SupportTicket(SupportTicketBase):
 class SupportTicketStatusUpdate(BaseModel):
     status: str
 
+class TicketMessageBase(BaseModel):
+    content: str
+
+class TicketMessageCreate(TicketMessageBase):
+    pass
+
+class TicketMessage(TicketMessageBase):
+    id: int
+    ticket_id: int
+    sender_id: int
+    created_at: datetime
+    
+    class Config:
+        orm_mode = True
+
 class AuditLogBase(BaseModel):
     action: str
     target_resource: Optional[str] = None

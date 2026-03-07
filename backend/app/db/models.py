@@ -95,6 +95,19 @@ class SupportTicket(Base):
 
     user = relationship("User")
     company = relationship("Company")
+    messages = relationship("TicketMessage", back_populates="ticket", cascade="all, delete-orphan")
+
+class TicketMessage(Base):
+    __tablename__ = "ticket_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    ticket_id = Column(Integer, ForeignKey("support_tickets.id"))
+    sender_id = Column(Integer, ForeignKey("users.id"))
+    content = Column(String)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    ticket = relationship("SupportTicket", back_populates="messages")
+    sender = relationship("User")
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { SupportTicket } from '../../types';
 import { getTickets, updateTicketStatus } from '../../services/api';
-import { Ticket, AlertTriangle, Bug, Zap, CreditCard, HelpCircle, CheckCircle2 } from 'lucide-react';
+import { Ticket, AlertTriangle, Bug, Zap, CreditCard, HelpCircle, CheckCircle2, MessageSquare } from 'lucide-react';
+import { TicketChat } from '../../components/TicketChat';
 
 export const SupportTicketsTable: React.FC = () => {
     const [tickets, setTickets] = useState<SupportTicket[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
 
     const fetchTickets = async () => {
         setLoading(true);
@@ -34,7 +36,7 @@ export const SupportTicketsTable: React.FC = () => {
     };
 
     const handleReply = (ticket: SupportTicket) => {
-        alert("Le module de messagerie interne est en cours d'intégration (Phase 4).");
+        setSelectedTicketId(selectedTicketId === ticket.id ? null : ticket.id);
         if (ticket.status === 'open') {
             handleUpdateStatus(ticket.id, 'in_progress');
         }
@@ -125,9 +127,13 @@ export const SupportTicketsTable: React.FC = () => {
                                     </select>
                                     <button
                                         onClick={() => handleReply(ticket)}
-                                        className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 text-sm font-medium rounded-lg transition-transform active:scale-95"
+                                        className={`px-4 py-1.5 shadow-md text-sm font-medium rounded-lg transition-transform active:scale-95 flex items-center gap-2 ${selectedTicketId === ticket.id
+                                                ? 'bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-200 shadow-slate-500/10'
+                                                : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20'
+                                            }`}
                                     >
-                                        Répondre
+                                        <MessageSquare className="w-4 h-4" />
+                                        {selectedTicketId === ticket.id ? 'Fermer' : 'Répondre'}
                                     </button>
                                 </>
                             )}
@@ -136,6 +142,12 @@ export const SupportTicketsTable: React.FC = () => {
                             )}
                         </div>
                     </div>
+
+                    {selectedTicketId === ticket.id && (
+                        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700/60 h-96 animate-in slide-in-from-top-4 duration-300">
+                            <TicketChat ticketId={ticket.id} />
+                        </div>
+                    )}
                 </div>
             ))}
         </div>

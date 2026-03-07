@@ -125,3 +125,26 @@ export const createTicket = async (ticketData: any, userId: number, companyId: n
     });
     return response.data;
 };
+
+export const getTicketMessages = async (ticketId: number): Promise<any[]> => {
+    const response = await api.get(`/api/tickets/${ticketId}/messages`);
+    return response.data;
+};
+
+export const createTicketMessage = async (ticketId: number, content: string, userId: number): Promise<any> => {
+    const response = await api.post(`/api/tickets/${ticketId}/messages`, { content }, {
+        headers: {
+            'x-user-id': userId
+        }
+    });
+    return response.data;
+};
+
+export const getMyTickets = async (userId: number): Promise<SupportTicket[]> => {
+    const response = await api.get('/api/users/me/tickets', {
+        headers: {
+            'x-user-id': userId
+        }
+    });
+    return response.data;
+};

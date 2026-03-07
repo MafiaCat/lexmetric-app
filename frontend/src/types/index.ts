@@ -51,3 +51,11 @@ export interface SupportTicket {
     created_at: string;
     updated_at: string;
 }
+
+export interface TicketMessage {
+    id: number;
+    ticket_id: number;
+    sender_id: number;
+    content: string;
+    created_at: string;
+}
