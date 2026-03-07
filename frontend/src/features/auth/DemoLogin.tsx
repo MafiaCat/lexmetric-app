@@ -28,9 +28,9 @@ export const DemoLogin: React.FC = () => {
     if (isLoading) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-                <div className="animate-pulse space-y-4 text-center">
-                    <div className="w-12 h-12 bg-indigo-200 rounded-full mx-auto"></div>
-                    <div className="h-4 w-32 bg-slate-200 rounded mx-auto"></div>
+                <div className="animate-pulse flex flex-col items-center justify-center space-y-4 text-center">
+                    <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                    <div className="text-slate-500 font-medium">Chargement des profils...</div>
                 </div>
             </div>
         );
