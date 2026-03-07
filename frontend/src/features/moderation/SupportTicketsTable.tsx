@@ -33,6 +33,13 @@ export const SupportTicketsTable: React.FC = () => {
         }
     };
 
+    const handleReply = (ticket: SupportTicket) => {
+        alert("Le module de messagerie interne est en cours d'intégration (Phase 4).");
+        if (ticket.status === 'open') {
+            handleUpdateStatus(ticket.id, 'in_progress');
+        }
+    };
+
     const getTypeIcon = (type: string) => {
         switch (type) {
             case 'fake_review_report': return <AlertTriangle className="w-4 h-4 text-orange-500" />;
@@ -116,7 +123,10 @@ export const SupportTicketsTable: React.FC = () => {
                                         <option value="resolved">Résolu</option>
                                         <option value="closed">Fermer</option>
                                     </select>
-                                    <button className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 text-sm font-medium rounded-lg transition-transform active:scale-95">
+                                    <button
+                                        onClick={() => handleReply(ticket)}
+                                        className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 text-sm font-medium rounded-lg transition-transform active:scale-95"
+                                    >
                                         Répondre
                                     </button>
                                 </>
