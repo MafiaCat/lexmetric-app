@@ -231,7 +231,7 @@ export const AdminLawyerManager: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <button
-                                                onClick={() => alert("L\'édition de fiche sera disponible dans la Phase 4.")}
+                                                onClick={() => setEditingLawyer(lawyer)}
                                                 className="text-indigo-400 hover:text-indigo-300 font-medium text-xs">Éditer fiche
                                             </button>
                                         </td>
