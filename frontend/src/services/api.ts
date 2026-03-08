@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Lawyer, SearchParams, Review, User, SupportTicket } from '../types';
+import { Lawyer, SearchParams, Review, User, SupportTicket, LawyerStats, LawFirm, PaginatedFirms } from '../types';
 
 // Fallback for Vite env variable to fix TypeScript error
 const API_URL = (import.meta as any).env?.VITE_API_URL || 'https://lexmetric-app.onrender.com';
@@ -102,6 +102,16 @@ export const getLawyerReviews = async (lawyerId: number): Promise<Review[]> => {
     }
 };
 
+export const getLawyerStats = async (lawyerId: number): Promise<LawyerStats> => {
+    try {
+        const response = await api.get(`/api/lawyers/${lawyerId}/stats`);
+        return response.data;
+    } catch (error) {
+        console.error(`Error fetching stats for lawyer ${lawyerId}:`, error);
+        throw error;
+    }
+};
+
 // --- AUTHENTICATION API --- //
 export const getDemoUsers = async (): Promise<User[]> => {
     const response = await api.get('/api/auth/demo-users');
@@ -136,6 +146,24 @@ export const getAdminReviews = async (): Promise<Review[]> => {
 
 export const deleteAdminReview = async (reviewId: number): Promise<any> => {
     const response = await api.delete(`/api/admin/reviews/${reviewId}`);
+    return response.data;
+};
+
+// --- FIRM API --- //
+export const getFirms = async (page: number = 1, size: number = 20, search?: string): Promise<PaginatedFirms> => {
+    const params: any = { page, size };
+    if (search) params.search = search;
+    const response = await api.get('/api/firms', { params });
+    return response.data;
+};
+
+export const createFirm = async (firmData: any): Promise<LawFirm> => {
+    const response = await api.post('/api/admin/firms', firmData);
+    return response.data;
+};
+
+export const updateFirm = async (firmId: number, firmData: any): Promise<LawFirm> => {
+    const response = await api.put(`/api/admin/firms/${firmId}`, firmData);
     return response.data;
 };
 

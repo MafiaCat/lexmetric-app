@@ -70,16 +70,25 @@ class Review(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     mission_id = Column(Integer, ForeignKey("missions.id"), unique=True)
-    company_id = Column(Integer, ForeignKey("companies.id"), nullable=True) # The company that gave the review
-    reactivity_score = Column(Integer) # 1-5
-    technical_expertise_score = Column(Integer) # 1-5
-    negotiation_score = Column(Integer) # 1-5
-    fee_respect_score = Column(Integer) # 1-5
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=True)
+    reactivity_score = Column(Integer)           # 1-5
+    technical_expertise_score = Column(Integer)  # 1-5
+    negotiation_score = Column(Integer)          # 1-5
+    fee_respect_score = Column(Integer)          # 1-5
     comment = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+    # --- New factual fields (all nullable for backwards compatibility) ---
+    actual_fees_paid = Column(Float, nullable=True)          # Honoraires réels en € HT
+    fee_billing_type = Column(String, nullable=True)          # "forfait" | "heure" | "success_fee"
+    mission_type = Column(String, nullable=True)              # "conseil" | "contentieux" | "negociation" | "autre"
+    mission_outcome = Column(String, nullable=True)           # "gagné" | "perdu" | "accord_amiable" | "en_cours" | "abandon"
+    mission_duration_days = Column(Integer, nullable=True)    # Durée en jours
+    would_recommend = Column(Boolean, nullable=True)          # Recommandation ?
+
     mission = relationship("Mission", back_populates="review")
     company = relationship("Company", back_populates="reviews")
+
 
 class SupportTicket(Base):
     __tablename__ = "support_tickets"

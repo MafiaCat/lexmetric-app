@@ -29,6 +29,14 @@ export const MissionReviewForm: React.FC<ReviewFormProps> = ({
     const [loadingLawyers, setLoadingLawyers] = useState(true);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
+    // New factual fields state
+    const [actualFeesPaid, setActualFeesPaid] = useState<number | "">("");
+    const [feeBillingType, setFeeBillingType] = useState<string>("");
+    const [missionType, setMissionType] = useState<string>("");
+    const [missionOutcome, setMissionOutcome] = useState<string>("");
+    const [missionDurationDays, setMissionDurationDays] = useState<number | "">("");
+    const [wouldRecommend, setWouldRecommend] = useState<boolean | null>(null);
+
     // Existing Review State
     const [hasExistingReview, setHasExistingReview] = useState(false);
     const [loadingReview, setLoadingReview] = useState(false);
@@ -91,11 +99,26 @@ export const MissionReviewForm: React.FC<ReviewFormProps> = ({
                         fees: latestReview.fee_respect_score
                     });
                     setComment(latestReview.comment || "");
+
+                    // Populate new factual fields
+                    setActualFeesPaid(latestReview.actual_fees_paid ?? "");
+                    setFeeBillingType(latestReview.fee_billing_type || "");
+                    setMissionType(latestReview.mission_type || "");
+                    setMissionOutcome(latestReview.mission_outcome || "");
+                    setMissionDurationDays(latestReview.mission_duration_days ?? "");
+                    setWouldRecommend(latestReview.would_recommend ?? null);
+
                     setHasExistingReview(true);
                 } else {
                     setHasExistingReview(false);
                     setScores({ reactivity: 0, technical: 0, negotiation: 0, fees: 0 });
                     setComment("");
+                    setActualFeesPaid("");
+                    setFeeBillingType("");
+                    setMissionType("");
+                    setMissionOutcome("");
+                    setMissionDurationDays("");
+                    setWouldRecommend(null);
                 }
             } catch (error) {
                 console.error("Error checking for existing review", error);
@@ -122,7 +145,13 @@ export const MissionReviewForm: React.FC<ReviewFormProps> = ({
                 technical_expertise_score: scores.technical,
                 negotiation_score: scores.negotiation,
                 fee_respect_score: scores.fees,
-                comment: comment
+                comment: comment,
+                actual_fees_paid: actualFeesPaid === "" ? null : Number(actualFeesPaid),
+                fee_billing_type: feeBillingType || null,
+                mission_type: missionType || null,
+                mission_outcome: missionOutcome || null,
+                mission_duration_days: missionDurationDays === "" ? null : Number(missionDurationDays),
+                would_recommend: wouldRecommend
             });
             setSubmitted(true);
             if (onClose) {
@@ -283,10 +312,110 @@ export const MissionReviewForm: React.FC<ReviewFormProps> = ({
                     </div>
                 )}
 
+                {/* Section 1: Données factuelles */}
+                <div className={`space-y-6 mb-10 transition-opacity duration-300 ${!selectedLawyer || loadingReview ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
+                    <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4 border-l-4 border-indigo-500 pl-3">
+                        Section 1 : Détails de la mission
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Honoraires HT payés (€)</label>
+                            <input
+                                type="number"
+                                value={actualFeesPaid}
+                                onChange={(e) => setActualFeesPaid(e.target.value === "" ? "" : Number(e.target.value))}
+                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+                                placeholder="ex: 1500"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Mode de facturation</label>
+                            <select
+                                value={feeBillingType}
+                                onChange={(e) => setFeeBillingType(e.target.value)}
+                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+                            >
+                                <option value="">Choisir...</option>
+                                <option value="forfait">Forfait</option>
+                                <option value="heure">Taux horaire</option>
+                                <option value="success_fee">Honoraire de résultat</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Type de mission</label>
+                            <select
+                                value={missionType}
+                                onChange={(e) => setMissionType(e.target.value)}
+                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+                            >
+                                <option value="">Choisir...</option>
+                                <option value="conseil">Conseil</option>
+                                <option value="contentieux">Contentieux</option>
+                                <option value="negociation">Négociation</option>
+                                <option value="autre">Autre</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Issue du dossier</label>
+                            <select
+                                value={missionOutcome}
+                                onChange={(e) => setMissionOutcome(e.target.value)}
+                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+                            >
+                                <option value="">Choisir...</option>
+                                <option value="gagné">Gagné</option>
+                                <option value="accord_amiable">Accord amiable</option>
+                                <option value="perdu">Perdu</option>
+                                <option value="en_cours">En cours</option>
+                                <option value="abandon">Abandon</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Recommanderiez-vous ?</label>
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setWouldRecommend(true)}
+                                    className={`flex-1 py-2.5 rounded-xl border font-medium transition-all ${wouldRecommend === true ? 'bg-green-500 text-white border-green-600' : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500'}`}
+                                >
+                                    Oui
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setWouldRecommend(false)}
+                                    className={`flex-1 py-2.5 rounded-xl border font-medium transition-all ${wouldRecommend === false ? 'bg-red-500 text-white border-red-600' : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500'}`}
+                                >
+                                    Non
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="text-xs font-semibold text-slate-500 uppercase mb-2 block">Durée estimée (jours)</label>
+                            <input
+                                type="number"
+                                value={missionDurationDays}
+                                onChange={(e) => setMissionDurationDays(e.target.value === "" ? "" : Number(e.target.value))}
+                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+                                placeholder="ex: 45"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Section 2: Scores qualitatifs */}
                 <div className={`space-y-2 mb-8 transition-opacity duration-300 ${!selectedLawyer || loadingReview ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
-                    <div className="flex items-center gap-2 text-sm text-indigo-300 font-medium px-2 mb-4 bg-indigo-500/10 py-2 rounded border border-indigo-500/20">
-                        <Info className="w-4 h-4" />
-                        Notez objectivement la prestation de 1 à 5 étoiles (5 étant exceptionnel).
+                    <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4 border-l-4 border-indigo-500 pl-3">
+                        Section 2 : Notation qualitative
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-indigo-500 dark:text-indigo-400 font-medium px-2 mb-4 bg-indigo-500/5 py-2 rounded">
+                        <Info className="w-3.5 h-3.5" />
+                        Attribuez de 1 à 5 étoiles selon votre expérience réelle.
                     </div>
 
                     {renderStars('reactivity', 'Réactivité & Communication', 'Rappels rapides, respect des délais de procédure.')}

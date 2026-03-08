@@ -224,12 +224,18 @@ def create_lawyer_review(
         # Check if it has a review
         existing_review = db.query(models.Review).filter(models.Review.mission_id == existing_mission.id).first()
         if existing_review:
-            # Update existing review
+            # Update existing review including new factual fields
             existing_review.reactivity_score = review.reactivity_score
             existing_review.technical_expertise_score = review.technical_expertise_score
             existing_review.negotiation_score = review.negotiation_score
             existing_review.fee_respect_score = review.fee_respect_score
             existing_review.comment = review.comment
+            existing_review.actual_fees_paid = review.actual_fees_paid
+            existing_review.fee_billing_type = review.fee_billing_type
+            existing_review.mission_type = review.mission_type
+            existing_review.mission_outcome = review.mission_outcome
+            existing_review.mission_duration_days = review.mission_duration_days
+            existing_review.would_recommend = review.would_recommend
             
             db.commit()
             db.refresh(existing_review)
@@ -254,12 +260,74 @@ def create_lawyer_review(
         technical_expertise_score=review.technical_expertise_score,
         negotiation_score=review.negotiation_score,
         fee_respect_score=review.fee_respect_score,
-        comment=review.comment
+        comment=review.comment,
+        actual_fees_paid=review.actual_fees_paid,
+        fee_billing_type=review.fee_billing_type,
+        mission_type=review.mission_type,
+        mission_outcome=review.mission_outcome,
+        mission_duration_days=review.mission_duration_days,
+        would_recommend=review.would_recommend,
     )
     db.add(db_review)
     db.commit()
     db.refresh(db_review)
     return db_review
+
+
+@app.get("/api/lawyers/{lawyer_id}/stats", response_model=schemas.LawyerStats)
+def get_lawyer_stats(lawyer_id: int, db: Session = Depends(get_db)):
+    """
+    Statistiques publiques agrégées pour un avocat à partir des évaluations.
+    """
+    db_lawyer = db.query(models.Lawyer).filter(models.Lawyer.id == lawyer_id).first()
+    if not db_lawyer:
+        raise HTTPException(status_code=404, detail="Lawyer not found")
+
+    reviews = (
+        db.query(models.Review)
+        .join(models.Mission)
+        .filter(models.Mission.lawyer_id == lawyer_id)
+        .all()
+    )
+
+    count = len(reviews)
+    if count == 0:
+        return schemas.LawyerStats(review_count=0)
+
+    def avg(values):
+        vals = [v for v in values if v is not None]
+        return round(sum(vals) / len(vals), 2) if vals else None
+
+    def median(values):
+        vals = sorted([v for v in values if v is not None])
+        if not vals:
+            return None
+        mid = len(vals) // 2
+        return vals[mid] if len(vals) % 2 else (vals[mid - 1] + vals[mid]) / 2
+
+    def distrib(values):
+        result = {}
+        for v in values:
+            if v is not None:
+                result[v] = result.get(v, 0) + 1
+        return result
+
+    recommend_vals = [r.would_recommend for r in reviews if r.would_recommend is not None]
+    recommend_rate = round(sum(recommend_vals) / len(recommend_vals) * 100, 1) if recommend_vals else None
+
+    return schemas.LawyerStats(
+        review_count=count,
+        avg_reactivity=avg([r.reactivity_score for r in reviews]),
+        avg_technical=avg([r.technical_expertise_score for r in reviews]),
+        avg_negotiation=avg([r.negotiation_score for r in reviews]),
+        avg_fee_respect=avg([r.fee_respect_score for r in reviews]),
+        recommend_rate=recommend_rate,
+        median_fees_paid=median([r.actual_fees_paid for r in reviews]),
+        avg_mission_duration_days=avg([r.mission_duration_days for r in reviews]),
+        mission_outcome_distribution=distrib([r.mission_outcome for r in reviews]),
+        mission_type_distribution=distrib([r.mission_type for r in reviews]),
+        fee_billing_type_distribution=distrib([r.fee_billing_type for r in reviews]),
+    )
 
 # --- MODERATION & TICKETS API --- #
 
@@ -530,4 +598,61 @@ def delete_review(review_id: int, db: Session = Depends(get_db), is_admin: bool 
     db.commit()
     
     return {"message": "Review deleted successfully"}
+
+
+# --- FIRM MANAGEMENT API --- #
+
+@app.get("/api/firms", response_model=schemas.LawFirmPaginatedResponse)
+def get_firms(
+    page: int = Query(1, ge=1),
+    size: int = Query(20, ge=1, le=100),
+    search: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Récupère la liste des cabinets (paginée).
+    """
+    query = db.query(models.LawFirm)
+    if search:
+        query = query.filter(models.LawFirm.name.ilike(f"%{search}%"))
+    
+    total = query.count()
+    pages = (total + size - 1) // size
+    items = query.offset((page - 1) * size).limit(size).all()
+
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "size": size,
+        "pages": pages
+    }
+
+@app.post("/api/admin/firms", response_model=schemas.LawFirm)
+def create_firm(firm: schemas.LawFirmCreate, db: Session = Depends(get_db), is_admin: bool = Depends(verify_admin)):
+    """
+    Modérateur : Créer un nouveau cabinet.
+    """
+    db_firm = models.LawFirm(**firm.dict())
+    db.add(db_firm)
+    db.commit()
+    db.refresh(db_firm)
+    return db_firm
+
+@app.put("/api/admin/firms/{firm_id}", response_model=schemas.LawFirm)
+def update_firm(firm_id: int, firm_update: schemas.LawFirmBase, db: Session = Depends(get_db), is_admin: bool = Depends(verify_admin)):
+    """
+    Modérateur : Mettre à jour les informations d'un cabinet.
+    """
+    db_firm = db.query(models.LawFirm).filter(models.LawFirm.id == firm_id).first()
+    if not db_firm:
+        raise HTTPException(status_code=404, detail="Firm not found")
+        
+    for key, value in firm_update.dict(exclude_unset=True).items():
+        setattr(db_firm, key, value)
+        
+    db.commit()
+    db.refresh(db_firm)
+    return db_firm
+
 

@@ -33,9 +33,46 @@ export interface Review {
     comment?: string;
     mission_id: number;
     created_at: string;
+    // New factual fields
+    actual_fees_paid?: number;
+    fee_billing_type?: 'forfait' | 'heure' | 'success_fee';
+    mission_type?: 'conseil' | 'contentieux' | 'negociation' | 'autre';
+    mission_outcome?: 'gagné' | 'perdu' | 'accord_amiable' | 'en_cours' | 'abandon';
+    mission_duration_days?: number;
+    would_recommend?: boolean;
+}
+
+export interface LawyerStats {
+    review_count: number;
+    avg_reactivity?: number;
+    avg_technical?: number;
+    avg_negotiation?: number;
+    avg_fee_respect?: number;
+    recommend_rate?: number;
+    median_fees_paid?: number;
+    avg_mission_duration_days?: number;
+    mission_outcome_distribution: Record<string, number>;
+    mission_type_distribution: Record<string, number>;
+    fee_billing_type_distribution: Record<string, number>;
+}
+
+
+export interface LawFirm {
+    id: number;
+    name: string;
+    size?: number;
+}
+
+export interface PaginatedFirms {
+    items: LawFirm[];
+    total: number;
+    page: number;
+    size: number;
+    pages: number;
 }
 
 export interface SearchParams {
+
     specialty: string;
     complexity: number;
     financial_stakes: number;
