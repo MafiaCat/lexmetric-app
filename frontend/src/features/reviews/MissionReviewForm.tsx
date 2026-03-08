@@ -33,11 +33,22 @@ export const MissionReviewForm: React.FC<ReviewFormProps> = ({
     const [hasExistingReview, setHasExistingReview] = useState(false);
     const [loadingReview, setLoadingReview] = useState(false);
 
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
+    // Debounce search query
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery);
+        }, 400);
+        return () => clearTimeout(handler);
+    }, [searchQuery]);
+
     useEffect(() => {
         const fetchLawyers = async () => {
+            setLoadingLawyers(true);
             try {
-                const data = await getLawyers();
-                setLawyers(data);
+                const data = await getLawyers(1, 15, debouncedSearchQuery);
+                setLawyers(data.items);
             } catch (error) {
                 console.error("Failed to fetch lawyers for review form:", error);
             } finally {
@@ -45,7 +56,7 @@ export const MissionReviewForm: React.FC<ReviewFormProps> = ({
             }
         };
         fetchLawyers();
-    }, []);
+    }, [debouncedSearchQuery]);
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -219,9 +230,6 @@ export const MissionReviewForm: React.FC<ReviewFormProps> = ({
                                 <div className="p-4 text-center text-sm text-slate-500">Chargement...</div>
                             ) : (
                                 lawyers
-                                    .filter(l =>
-                                        `${l.first_name} ${l.last_name} ${l.bar_association}`.toLowerCase().includes(searchQuery.toLowerCase())
-                                    )
                                     .map(lawyer => (
                                         <button
                                             key={lawyer.id}
@@ -249,7 +257,7 @@ export const MissionReviewForm: React.FC<ReviewFormProps> = ({
                                         </button>
                                     ))
                             )}
-                            {!loadingLawyers && lawyers.filter(l => `${l.first_name} ${l.last_name} ${l.bar_association}`.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                            {!loadingLawyers && lawyers.length === 0 && (
                                 <div className="p-4 text-center text-sm text-slate-500">Aucun avocat trouvé pour "{searchQuery}"</div>
                             )}
                         </div>

@@ -41,9 +41,20 @@ export const searchLawyers = async (params: SearchParams): Promise<Lawyer[]> => 
     }
 };
 
-export const getLawyers = async (): Promise<Lawyer[]> => {
+export interface PaginatedLawyers {
+    items: Lawyer[];
+    total: number;
+    page: number;
+    size: number;
+    pages: number;
+}
+
+export const getLawyers = async (page: number = 1, size: number = 20, search?: string): Promise<PaginatedLawyers> => {
     try {
-        const response = await api.get('/api/lawyers');
+        const params: any = { page, size };
+        if (search) params.search = search;
+
+        const response = await api.get('/api/lawyers', { params });
         return response.data;
     } catch (error) {
         console.error('Error fetching all lawyers:', error);
@@ -97,16 +108,6 @@ export const getDemoUsers = async (): Promise<User[]> => {
     return response.data;
 };
 
-export const getAdminUsers = async (): Promise<User[]> => {
-    const response = await api.get('/api/admin/users');
-    return response.data;
-};
-
-export const updateUserRole = async (userId: number, role: string): Promise<User> => {
-    const response = await api.put(`/api/admin/users/${userId}/role`, { role });
-    return response.data;
-};
-
 // --- MODERATION API --- //
 export const getPendingLawyers = async (): Promise<Lawyer[]> => {
     const response = await api.get('/api/moderation/lawyers/pending');
@@ -138,11 +139,6 @@ export const deleteAdminReview = async (reviewId: number): Promise<any> => {
     return response.data;
 };
 
-export const getAdminAuditLogs = async (): Promise<any[]> => {
-    const response = await api.get('/api/admin/audit-logs');
-    return response.data;
-};
-
 export const getTickets = async (): Promise<SupportTicket[]> => {
     const response = await api.get('/api/moderation/tickets');
     return response.data;
@@ -150,11 +146,6 @@ export const getTickets = async (): Promise<SupportTicket[]> => {
 
 export const updateTicketStatus = async (ticketId: number, status: string): Promise<SupportTicket> => {
     const response = await api.put(`/api/moderation/tickets/${ticketId}/status`, { status });
-    return response.data;
-};
-
-export const updateTicketType = async (ticketId: number, ticketType: string): Promise<SupportTicket> => {
-    const response = await api.put(`/api/moderation/tickets/${ticketId}/type`, { ticket_type: ticketType });
     return response.data;
 };
 

@@ -46,6 +46,8 @@ class Lawyer(Base):
     in_network = Column(Boolean, default=False)
     average_hourly_rate = Column(Float)
     status = Column(String, default="pending")  # "pending", "approved", "rejected"
+    source = Column(String, default="manual_entry")  # "cnb_import", "manual_entry", "user_submission"
+    is_verified = Column(Boolean, default=False)
     
     law_firm_id = Column(Integer, ForeignKey("law_firms.id"), nullable=True)
     firm = relationship("LawFirm", back_populates="lawyers")

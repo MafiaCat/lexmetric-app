@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Sun, Moon, LayoutDashboard, Users, FileText, Database, Settings, Ticket, Activity } from 'lucide-react';
+import { ModerationDashboard } from './features/moderation/ModerationDashboard';
 import { AdminDashboardStats } from './features/moderation/AdminDashboardStats';
 import { AdminLawyerManager } from './features/moderation/AdminLawyerManager';
-import { PendingLawyersTable } from './features/moderation/PendingLawyersTable';
-import { SupportTicketsTable } from './features/moderation/SupportTicketsTable';
 import { AdminUserManager } from './features/moderation/AdminUserManager';
 import { AdminAuditLogs } from './features/moderation/AdminAuditLogs';
 import { AdminReviewsManager } from './features/moderation/AdminReviewsManager';
@@ -108,20 +107,10 @@ export function ModeratorApp() {
                 {/* Routing content */}
                 <div className="animate-in fade-in duration-500">
                     {activeTab === 'overview' && <AdminDashboardStats />}
-                    {activeTab === 'lawyers' && (
-                        <div className="space-y-12">
-                            <AdminLawyerManager />
-                            <div className="border-t border-slate-800 pt-12">
-                                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                                    <Users className="w-6 h-6 text-indigo-400" />
-                                    Validations en attente
-                                </h2>
-                                <PendingLawyersTable />
-                            </div>
-                        </div>
-                    )}
+                    {activeTab === 'lawyers' && <AdminLawyerManager />}
 
-                    {activeTab === 'tickets' && <SupportTicketsTable />}
+                    {/* Ticketing is using old ModerationDashboard (to be broken down next) */}
+                    {activeTab === 'tickets' && <ModerationDashboard />}
 
                     {activeTab === 'reviews' && <AdminReviewsManager />}
 

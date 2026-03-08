@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Database, Search, UserCheck, Shield, User as UserIcon } from 'lucide-react';
+import { Database, Search, UserCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { User as UserType } from '../../types';
-import { getAdminUsers, updateUserRole } from '../../services/api';
 
 export const AdminUserManager: React.FC = () => {
     const { impersonate } = useAuth();
     const [users, setUsers] = useState<UserType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const [searchTerm, setSearchTerm] = useState('');
+    const apiUrl = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
 
     const fetchUsers = async () => {
         setIsLoading(true);
         try {
-            const data = await getAdminUsers();
-            setUsers(data);
+            // Re-using the demo-users endpoint to fetch all users for the MVP
+            const response = await fetch(`${apiUrl}/api/auth/demo-users`);
+            if (response.ok) {
+                const data = await response.json();
+                setUsers(data);
+            }
         } catch (error) {
             console.error(error);
         } finally {
@@ -23,27 +26,9 @@ export const AdminUserManager: React.FC = () => {
         }
     };
 
-    const handleRoleChange = async (userId: number, currentRole: string) => {
-        const newRole = currentRole === 'admin' ? 'user' : 'admin';
-        if (!window.confirm(`Changer le rôle de cet utilisateur en ${newRole === 'admin' ? 'Administrateur' : 'Gestionnaire'} ?`)) return;
-
-        try {
-            await updateUserRole(userId, newRole);
-            setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
-        } catch (error) {
-            console.error(error);
-            alert("Erreur lors du changement de rôle");
-        }
-    };
-
     useEffect(() => {
         fetchUsers();
     }, []);
-
-    const filteredUsers = users.filter(u =>
-        u.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
 
     const handleImpersonate = (targetUser: UserType) => {
         if (window.confirm(`Vous allez naviguer sur la plateforme en tant que ${targetUser.full_name}. Cette action n'est pas silencieuse (vos actions seront tracées). Continuer ?`)) {
@@ -70,8 +55,6 @@ export const AdminUserManager: React.FC = () => {
                         <input
                             type="text"
                             placeholder="Rechercher un utilisateur..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg pl-9 pr-4 py-2 w-64 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                         />
                     </div>
@@ -95,40 +78,29 @@ export const AdminUserManager: React.FC = () => {
                                         Chargement des comptes...
                                     </td>
                                 </tr>
-                            ) : filteredUsers.length === 0 ? (
+                            ) : users.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
-                                        Aucun résultat pour "{searchTerm}".
+                                        Aucun compte trouvé.
                                     </td>
                                 </tr>
                             ) : (
-                                filteredUsers.map((u) => (
+                                users.map((u) => (
                                     <tr key={u.id} className="hover:bg-slate-800/20 transition-colors">
                                         <td className="px-6 py-4 font-medium text-slate-200">
                                             {u.full_name}
                                         </td>
                                         <td className="px-6 py-4">{u.email}</td>
                                         <td className="px-6 py-4">
-                                            <button
-                                                onClick={() => handleRoleChange(u.id, u.role)}
-                                                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-                                            >
-                                                {u.role === 'admin' ? (
-                                                    <>
-                                                        <Shield className="w-3 h-3 text-indigo-400" />
-                                                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Admin</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <UserIcon className="w-3 h-3 text-slate-500" />
-                                                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-slate-800 text-slate-300 border border-slate-700">Gestionnaire</span>
-                                                    </>
-                                                )}
-                                            </button>
+                                            {u.role === 'admin' ? (
+                                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Admin</span>
+                                            ) : (
+                                                <span className="px-2 py-1 text-xs font-medium rounded-full bg-slate-800 text-slate-300 border border-slate-700">Gestionnaire</span>
+                                            )}
                                         </td>
-                                        <td className="px-6 py-4 truncate max-w-[150px] font-mono text-xs">{u.company_id}</td>
+                                        <td className="px-6 py-4 truncate max-w-[150px]">{u.company_id}</td>
                                         <td className="px-6 py-4 text-right">
-                                            {u.id !== 1 && u.role !== 'admin' && (
+                                            {u.role !== 'admin' && (
                                                 <button
                                                     onClick={() => handleImpersonate(u)}
                                                     className="flex items-center gap-2 justify-end text-emerald-400 hover:text-emerald-300 font-medium text-xs w-full group"

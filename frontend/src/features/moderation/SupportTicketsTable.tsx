@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { SupportTicket } from '../../types';
-import { getTickets, updateTicketStatus, updateTicketType } from '../../services/api';
+import { getTickets, updateTicketStatus } from '../../services/api';
 import { Ticket, AlertTriangle, Bug, Zap, CreditCard, HelpCircle, CheckCircle2, MessageSquare } from 'lucide-react';
 import { TicketChat } from '../../components/TicketChat';
 
@@ -35,15 +35,6 @@ export const SupportTicketsTable: React.FC = () => {
         }
     };
 
-    const handleUpdateType = async (ticketId: number, type: string) => {
-        try {
-            const updated = await updateTicketType(ticketId, type);
-            setTickets(tickets.map(t => t.id === ticketId ? updated : t));
-        } catch (error) {
-            console.error("Erreur de re-classification", error);
-        }
-    };
-
     const handleReply = (ticket: SupportTicket) => {
         setSelectedTicketId(selectedTicketId === ticket.id ? null : ticket.id);
         if (ticket.status === 'open') {
@@ -61,7 +52,16 @@ export const SupportTicketsTable: React.FC = () => {
         }
     };
 
-
+    const getTypeLabel = (type: string) => {
+        switch (type) {
+            case 'profile_update': return 'Mise à jour profil';
+            case 'fake_review_report': return 'Signalement abus';
+            case 'bug_report': return 'Bug technique';
+            case 'feature_request': return 'Amélioration';
+            case 'billing_issue': return 'Facturation';
+            default: return 'Autre demande';
+        }
+    };
 
     const getStatusStyle = (status: string) => {
         switch (status) {
@@ -96,18 +96,7 @@ export const SupportTicketsTable: React.FC = () => {
                             </span>
                             <div className="flex items-center gap-1.5 text-sm font-medium text-slate-600 dark:text-slate-300">
                                 {getTypeIcon(ticket.ticket_type)}
-                                <select
-                                    value={ticket.ticket_type}
-                                    onChange={(e) => handleUpdateType(ticket.id, e.target.value)}
-                                    className="bg-transparent border-none p-0 focus:ring-0 cursor-pointer hover:underline text-sm font-semibold"
-                                >
-                                    <option value="profile_update">Mise à jour profil</option>
-                                    <option value="fake_review_report">Signalement abus</option>
-                                    <option value="bug_report">Bug technique</option>
-                                    <option value="feature_request">Amélioration</option>
-                                    <option value="billing_issue">Facturation</option>
-                                    <option value="other">Autre demande</option>
-                                </select>
+                                {getTypeLabel(ticket.ticket_type)}
                             </div>
                         </div>
                         <span className="text-xs text-slate-400 font-mono">

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import date, datetime
 
@@ -7,9 +7,7 @@ class CompanyBase(BaseModel):
 
 class Company(CompanyBase):
     id: int
-    
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserBase(BaseModel):
     email: str
@@ -19,9 +17,7 @@ class UserBase(BaseModel):
 
 class User(UserBase):
     id: int
-    
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ReviewBase(BaseModel):
     reactivity_score: int
@@ -41,9 +37,7 @@ class Review(ReviewBase):
     mission_id: int
     company_id: Optional[int] = None
     created_at: datetime
-    
-    class Config:
-        orm_mode=True
+    model_config = ConfigDict(from_attributes=True)
 
 class LawyerBase(BaseModel):
     first_name: str
@@ -51,12 +45,14 @@ class LawyerBase(BaseModel):
     bar_association: str
     city: str
     firm_type: str
-    oath_date: date
+    oath_date: Optional[date] = None
     specialties: List[str]
     in_network: bool
     average_hourly_rate: float
     law_firm_id: Optional[int] = None
     status: str = "pending"
+    source: str = "manual_entry"
+    is_verified: bool = False
 
 class LawyerCreate(LawyerBase):
     pass
@@ -75,12 +71,17 @@ class LawyerUpdate(BaseModel):
 
 class Lawyer(LawyerBase):
     id: int
-    
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class LawyerSearchResponse(Lawyer):
     matching_score: float
+
+class LawyerPaginatedResponse(BaseModel):
+    items: List[Lawyer]
+    total: int
+    page: int
+    size: int
+    pages: int
 
 class LawyerStatusUpdate(BaseModel):
     status: str
@@ -101,9 +102,7 @@ class SupportTicket(SupportTicketBase):
     status: str
     created_at: datetime
     updated_at: datetime
-    
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class SupportTicketStatusUpdate(BaseModel):
     status: str
@@ -119,9 +118,7 @@ class TicketMessage(TicketMessageBase):
     ticket_id: int
     sender_id: int
     created_at: datetime
-    
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class AuditLogBase(BaseModel):
     action: str
@@ -131,6 +128,4 @@ class AuditLog(AuditLogBase):
     id: int
     user_id: int
     created_at: datetime
-    
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)

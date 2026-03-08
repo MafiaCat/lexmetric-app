@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Search, ShieldCheck, ShieldAlert, MapPin, Briefcase } from 'lucide-react';
+import { Users, Search, ShieldCheck, ShieldAlert, MapPin, Briefcase, X, Eye, Calendar } from 'lucide-react';
 import { getLawyers } from '../../services/api';
 import { Lawyer } from '../../types';
 
@@ -7,20 +7,29 @@ export const Annuaire: React.FC = () => {
     const [lawyers, setLawyers] = useState<Lawyer[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 6;
+    const [totalPages, setTotalPages] = useState(1);
+    const itemsPerPage = 12;
 
-    const [selectedSpecialty, setSelectedSpecialty] = useState<string>('');
-    const [selectedBar, setSelectedBar] = useState<string>('');
-    const [inNetworkOnly, setInNetworkOnly] = useState<boolean>(false);
+    // Debounce search input
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+            setCurrentPage(1); // Reset to page 1 on new search
+        }, 400);
+        return () => clearTimeout(handler);
+    }, [searchTerm]);
 
     useEffect(() => {
         const fetchLawyers = async () => {
+            setLoading(true);
             try {
-                const data = await getLawyers();
-                setLawyers(data);
+                const data = await getLawyers(currentPage, itemsPerPage, debouncedSearch);
+                setLawyers(data.items);
+                setTotalPages(data.pages);
             } catch (err) {
                 console.error("Failed to load directory", err);
             } finally {
@@ -29,36 +38,15 @@ export const Annuaire: React.FC = () => {
         };
 
         fetchLawyers();
-    }, []);
+    }, [currentPage, debouncedSearch]);
 
-    // Reset to first page when search changes
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm, selectedSpecialty, selectedBar, inNetworkOnly]);
+    const currentLawyers = lawyers;
 
-    // Compute unique options for filters
-    const uniqueSpecialties = Array.from(new Set(lawyers.flatMap(l => l.specialties))).sort();
-    const uniqueBars = Array.from(new Set(lawyers.map(l => l.bar_association))).sort();
-
-    const filteredLawyers = lawyers.filter(lawyer => {
-        const matchesSearch = lawyer.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            lawyer.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            lawyer.bar_association.toLowerCase().includes(searchTerm.toLowerCase());
-
-        const matchesSpecialty = selectedSpecialty === '' || lawyer.specialties.includes(selectedSpecialty);
-        const matchesBar = selectedBar === '' || lawyer.bar_association === selectedBar;
-        const matchesNetwork = !inNetworkOnly || lawyer.in_network;
-
-        return matchesSearch && matchesSpecialty && matchesBar && matchesNetwork;
-    });
-
-    // Pagination calculations
-    const totalPages = Math.ceil(filteredLawyers.length / itemsPerPage);
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentLawyers = filteredLawyers.slice(indexOfFirstItem, indexOfLastItem);
+    // Profile viewer
+    const [viewingLawyer, setViewingLawyer] = useState<Lawyer | null>(null);
 
     return (
+        <>
         <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
             {/* Header section */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -75,64 +63,18 @@ export const Annuaire: React.FC = () => {
 
             {/* Advanced Filters Panel - Always Visible */}
             <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 shadow-sm">
-                <div className="flex flex-col md:flex-row gap-5 items-end">
+                <div className="flex flex-col md:flex-row gap-5 items-center">
                     {/* Search Bar */}
-                    <div className="relative w-full md:w-80">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1.5">Recherche vocale ou textuelle</label>
+                    <div className="relative w-full">
+                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1.5">Recherche textuelle</label>
                         <input
                             type="text"
-                            placeholder="Rechercher un nom, un barreau..."
+                            placeholder="Rechercher un nom, un barreau, une ville..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
                         />
                         <Search className="w-5 h-5 text-slate-400 absolute left-3 top-9" />
-                    </div>
-
-                    <div className="w-full md:w-48 space-y-1.5">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Spécialité</label>
-                        <select
-                            value={selectedSpecialty}
-                            onChange={(e) => setSelectedSpecialty(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        >
-                            <option value="">Toutes les spécialités</option>
-                            {uniqueSpecialties.map(spec => (
-                                <option key={spec} value={spec}>{spec}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="w-full md:w-48 space-y-1.5">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Barreau</label>
-                        <select
-                            value={selectedBar}
-                            onChange={(e) => setSelectedBar(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2.5 text-sm text-slate-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        >
-                            <option value="">Tous les barreaux</option>
-                            {uniqueBars.map(bar => (
-                                <option key={bar} value={bar}>{bar}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="flex items-center mb-2.5 ml-0 md:ml-4">
-                        <label className="flex items-center cursor-pointer space-x-3">
-                            <div className="relative">
-                                <input
-                                    type="checkbox"
-                                    className="sr-only"
-                                    checked={inNetworkOnly}
-                                    onChange={() => setInNetworkOnly(!inNetworkOnly)}
-                                />
-                                <div className={`block w-10 h-6 rounded-full transition-colors ${inNetworkOnly ? 'bg-indigo-500' : 'bg-slate-300 dark:bg-slate-600'}`}></div>
-                                <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${inNetworkOnly ? 'transform translate-x-4' : ''}`}></div>
-                            </div>
-                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                Réseau Partenaire
-                            </span>
-                        </label>
                     </div>
                 </div>
             </div>
@@ -185,12 +127,18 @@ export const Annuaire: React.FC = () => {
                                     <div className="flex items-center justify-between text-sm mt-4">
                                         <div className="flex items-center text-slate-500 dark:text-slate-400">
                                             <Briefcase className="w-4 h-4 mr-1.5" />
-                                            {new Date().getFullYear() - new Date(lawyer.oath_date).getFullYear()} ans exp.
+                                            {lawyer.oath_date ? `${new Date().getFullYear() - new Date(lawyer.oath_date).getFullYear()} ans exp.` : 'Exp. inconnue'}
                                         </div>
                                         <div className="font-semibold text-slate-700 dark:text-slate-300">
-                                            {lawyer.average_hourly_rate}€/h
+                                            {lawyer.average_hourly_rate > 0 ? `${lawyer.average_hourly_rate}€/h` : 'N/R'}
                                         </div>
                                     </div>
+                                    <button
+                                        onClick={() => setViewingLawyer(lawyer)}
+                                        className="mt-4 w-full flex items-center justify-center gap-2 py-2 px-4 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-sm font-medium rounded-xl border border-indigo-100 dark:border-indigo-500/20 transition-colors"
+                                    >
+                                        <Eye className="w-4 h-4" /> Voir la fiche
+                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -213,19 +161,32 @@ export const Annuaire: React.FC = () => {
                                 Précédent
                             </button>
 
-                            <div className="flex space-x-1">
-                                {[...Array(totalPages)].map((_, i) => (
-                                    <button
-                                        key={i + 1}
-                                        onClick={() => setCurrentPage(i + 1)}
-                                        className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${currentPage === i + 1
-                                            ? 'bg-indigo-600 text-white shadow-md'
-                                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
-                                            }`}
-                                    >
-                                        {i + 1}
-                                    </button>
-                                ))}
+                            <div className="flex space-x-1 overflow-x-auto max-w-sm px-2 scrollbar-none">
+                                {(() => {
+                                    // Complex classic pagination rendering to restrict huge button lists
+                                    let pages = [];
+                                    let startPage = Math.max(1, currentPage - 2);
+                                    let endPage = Math.min(totalPages, currentPage + 2);
+
+                                    if (currentPage <= 3) endPage = Math.min(5, totalPages);
+                                    if (currentPage >= totalPages - 2) startPage = Math.max(1, totalPages - 4);
+
+                                    for (let i = startPage; i <= endPage; i++) {
+                                        pages.push(
+                                            <button
+                                                key={i}
+                                                onClick={() => setCurrentPage(i)}
+                                                className={`w-10 h-10 flex-shrink-0 rounded-lg text-sm font-medium transition-colors ${currentPage === i
+                                                    ? 'bg-indigo-600 text-white shadow-md'
+                                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                                    }`}
+                                            >
+                                                {i}
+                                            </button>
+                                        );
+                                    }
+                                    return pages;
+                                })()}
                             </div>
 
                             <button
@@ -240,5 +201,93 @@ export const Annuaire: React.FC = () => {
                 </div>
             )}
         </div>
+
+        {/* Profile Viewer Modal */}
+        {viewingLawyer && <LawyerProfileModal lawyer={viewingLawyer!} onClose={() => setViewingLawyer(null)} />}
+        </>
     );
 };
+
+
+
+/* ----- Profile Modal (Lawyer Detail) ----- */
+const LawyerProfileModal: React.FC<{ lawyer: Lawyer; onClose: () => void }> = ({ lawyer, onClose }) => (
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}>
+        <div
+            className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in zoom-in-95 duration-200"
+            onClick={e => e.stopPropagation()}
+        >
+            {/* Header */}
+            <div className="p-6 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-slate-900 border-b border-slate-200 dark:border-slate-700 flex justify-between items-start">
+                <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-400 to-blue-400 flex items-center justify-center text-white text-xl font-bold shadow-lg">
+                        {lawyer.first_name[0]}{lawyer.last_name[0]}
+                    </div>
+                    <div>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Me {lawyer.first_name} {lawyer.last_name}</h2>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">{lawyer.firm_type || 'Cabinet non renseigné'}</p>
+                        <div className="mt-2">
+                            {lawyer.in_network ? (
+                                <span className="inline-flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-400/10 px-2.5 py-1 rounded-full border border-green-200 dark:border-green-500/20">
+                                    <ShieldCheck className="w-3.5 h-3.5" /> Partenaire Réseau
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-600">
+                                    <ShieldAlert className="w-3.5 h-3.5" /> Hors Réseau
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+                <button onClick={onClose} className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors p-1">
+                    <X className="w-5 h-5" />
+                </button>
+            </div>
+
+            {/* Details */}
+            <div className="p-6 space-y-5">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                        <MapPin className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                        <div>
+                            <p className="text-xs text-slate-400 dark:text-slate-500 mb-0.5">Barreau</p>
+                            <p className="font-medium text-slate-800 dark:text-slate-200">{lawyer.bar_association}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                        <MapPin className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                        <div>
+                            <p className="text-xs text-slate-400 dark:text-slate-500 mb-0.5">Ville</p>
+                            <p className="font-medium text-slate-800 dark:text-slate-200">{lawyer.city || '—'}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                        <Calendar className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                        <div>
+                            <p className="text-xs text-slate-400 dark:text-slate-500 mb-0.5">Prestation de serment</p>
+                            <p className="font-medium text-slate-800 dark:text-slate-200">{lawyer.oath_date ? new Date(lawyer.oath_date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' }) : 'Non renseignée'}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                        <Briefcase className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                        <div>
+                            <p className="text-xs text-slate-400 dark:text-slate-500 mb-0.5">Taux horaire</p>
+                            <p className="font-medium text-slate-800 dark:text-slate-200">{lawyer.average_hourly_rate > 0 ? `${lawyer.average_hourly_rate} €/h` : 'Non renseigné'}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {lawyer.specialties && lawyer.specialties.length > 0 && (
+                    <div>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mb-2 uppercase tracking-wider font-medium">Spécialités</p>
+                        <div className="flex flex-wrap gap-2">
+                            {lawyer.specialties.map(s => (
+                                <span key={s} className="px-3 py-1 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-500/20 text-xs font-medium rounded-lg">{s}</span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    </div>
+);

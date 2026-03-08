@@ -20,6 +20,8 @@ export interface Lawyer {
     law_firm_id: number | null;
     matching_score?: number; // Added from search backend
     status?: string; // "pending", "approved", "rejected"
+    source?: string; // "cnb_import", "manual_entry", "user_submission"
+    is_verified?: boolean;
 }
 
 export interface Review {
